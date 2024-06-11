@@ -1,0 +1,83 @@
+import 'package:flutter/material.dart';
+import 'package:rxroute_test/View/homeView/Doctor/doctors_list.dart';
+import 'package:rxroute_test/View/homeView/home_view.dart';
+
+class SuccessfullyAdded extends StatefulWidget {
+  const SuccessfullyAdded({super.key});
+
+  @override
+  State<SuccessfullyAdded> createState() => _SuccessfullyAddedState();
+}
+
+class _SuccessfullyAddedState extends State<SuccessfullyAdded> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0, end: -20.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _navigateToNextPage();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  _navigateToNextPage() async {
+    await Future.delayed(const Duration(seconds: 3), () {});
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DoctorsList()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(25.0),
+            child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6)
+                ),
+                child: Image.asset('assets/icons/splashimage.png')),
+          ),
+          SizedBox(
+            height: 80,
+            width: 80,
+            child: AnimatedBuilder(
+              animation: _animation,
+              child: Image.asset('assets/icons/verify.png'),
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, _animation.value),
+                  child: child,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10,),
+          const Text('Success !', style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700
+          ),)
+        ],
+      ),
+    );
+  }
+}
