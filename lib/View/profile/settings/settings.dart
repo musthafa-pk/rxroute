@@ -22,8 +22,9 @@ class _SettingsState extends State<Settings> {
 
    Future<dynamic> getUserDetails() async {
      SharedPreferences preferences = await SharedPreferences.getInstance();
+     String? uniqueID = preferences.getString('uniqueID');
     Map<String, dynamic> data = {
-      "uniqueId":preferences.getString('userID')
+      "uniqueId":uniqueID
     };
     String url = AppUrl.single_employee_details;
     try {

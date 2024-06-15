@@ -15,13 +15,16 @@ import 'package:rxroute_test/app_colors.dart';
  const text50010tcolor2 = TextStyle(fontWeight: FontWeight.w500,fontSize: 10,color: AppColors.borderColor);
  const text50010black = TextStyle(fontWeight: FontWeight.w500,fontSize: 10,color: AppColors.blackColor);
  const text50012 = TextStyle(fontWeight: FontWeight.w500,fontSize: 12,color: AppColors.whiteColor);
+ const text50012black = TextStyle(fontWeight: FontWeight.w500,fontSize: 12,color: AppColors.blackColor);
  const text50014 = TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.whiteColor);
+ const text50014primary = TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.primaryColor);
  const text50014black = TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.blackColor);
 
  const text60012 = TextStyle(fontWeight: FontWeight.w600,fontSize: 12,color: AppColors.whiteColor);
  const text60014 = TextStyle(fontWeight: FontWeight.w600,fontSize: 14,color: AppColors.whiteColor);
  const text60014black = TextStyle(fontWeight: FontWeight.w600,fontSize: 14,color: AppColors.blackColor);
  const text60017 = TextStyle(fontWeight: FontWeight.w600,fontSize: 17,color: AppColors.whiteColor);
+ const text60017black = TextStyle(fontWeight: FontWeight.w600,fontSize: 17,color: AppColors.blackColor);
  const text60018 = TextStyle(fontWeight: FontWeight.w600,fontSize: 18,color: AppColors.whiteColor);
  const text60024 = TextStyle(fontWeight: FontWeight.w600,fontSize: 24,color: AppColors.whiteColor);
  const text60024black = TextStyle(fontWeight: FontWeight.w600,fontSize: 24,color: AppColors.blackColor);

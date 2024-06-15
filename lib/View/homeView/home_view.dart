@@ -48,12 +48,8 @@ class _HomeViewState extends State<HomeView> {
     String url = AppUrl.totaldoctorscount;
 
     try {
-      final response = await http.post(
+      final response = await http.get(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // body: jsonEncode(data),
       );
       // print(jsonEncode(data));
       print('${response.statusCode}');
@@ -73,23 +69,25 @@ class _HomeViewState extends State<HomeView> {
     String url = AppUrl.totalrepcount;
 
     try {
-      final response = await http.post(
+      final response = await http.get(
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
         },
-        // body: jsonEncode(data),
       );
-      // print(jsonEncode(data));
-      print('${response.statusCode}');
-      print('${response.body}');
+
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
+        print('Parsed Response Data: $responseData'); // Added print statement
         return responseData;
       } else {
         throw Exception('Failed to load data (status code: ${response.statusCode})');
       }
     } catch (e) {
+      print('Exception: $e'); // Added print statement for exceptions
       throw Exception('Failed to load data: $e');
     }
   }
@@ -97,6 +95,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.whiteColor,
       key: _scaffoldKey,
       drawer:  CustomDrawer(),
       appBar: AppBar(
@@ -123,7 +122,7 @@ class _HomeViewState extends State<HomeView> {
             Expanded(
               child: InkWell(
                 onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const AddDoctor(),));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => AddDoctor(),));
                 },
                 child: Container(
                   height: 100,
@@ -363,10 +362,10 @@ class _HomeViewState extends State<HomeView> {
                             Expanded(child: Image.asset('assets/icons/lvapprove.png')),
                             const Column(
                               children: [
-                                Text('Leave',style: TextStyle(
+                                Text('My',style: TextStyle(
                                     fontWeight: FontWeight.w600
                                 ),),
-                                Text('Approval',style: TextStyle(
+                                Text('Leaves',style: TextStyle(
                                     fontWeight: FontWeight.w600
                                 ),),
                               ],
@@ -404,7 +403,7 @@ class _HomeViewState extends State<HomeView> {
                       child: SizedBox(
                         child: Column(
                           children: [
-                            Expanded(child: Image.asset('assets/icons/expreq.png')),
+                            Expanded(child: Image.asset('assets/icons/tp.png')),
                             const Column(
                               children: [
                                 Text('Expense',style: TextStyle(
@@ -427,13 +426,60 @@ class _HomeViewState extends State<HomeView> {
                       child: SizedBox(
                         child: Column(
                           children: [
+                            Expanded(child: Image.asset('assets/icons/expense.png')),
+                            const Column(
+                              children: [
+                                Text('My',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+                                Text('Expenses',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    InkWell(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
+                      },
+                      child: SizedBox(
+                        child: Column(
+                          children: [
                             Expanded(child: Image.asset('assets/icons/expapprove.png')),
                             const Column(
                               children: [
-                                Text('Expense',style: TextStyle(
+                                Text('Approve',style: TextStyle(
                                     fontWeight: FontWeight.w600
                                 ),),
-                                Text('Approval',style: TextStyle(
+                                Text('Leaves',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    InkWell(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
+                      },
+                      child: SizedBox(
+                        child: Column(
+                          children: [
+                            Expanded(child: Image.asset('assets/icons/expapprove.png')),
+                            const Column(
+                              children: [
+                                Text('Approve',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+                                Text('Expenses',style: TextStyle(
                                     fontWeight: FontWeight.w600
                                 ),),
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/View/homeView/Doctor/doctors_list.dart';
 import 'package:rxroute_test/View/homeView/home_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SuccessfullyAdded extends StatefulWidget {
   const SuccessfullyAdded({super.key});
@@ -35,11 +37,16 @@ class _SuccessfullyAddedState extends State<SuccessfullyAdded> with SingleTicker
   }
 
   _navigateToNextPage() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? userType = preferences.getString('userType');
+    print('user type in succes splash:$userType');
     await Future.delayed(const Duration(seconds: 3), () {});
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DoctorsList()),
-    );
+    if(userType == 'rep'){
+      Navigator.pushNamedAndRemoveUntil(context, RoutesName.home_rep, (route) => false,);
+    }else{
+      Navigator.pushNamedAndRemoveUntil(context, RoutesName.home_manager, (route) => false,);
+    }
+
   }
 
   @override

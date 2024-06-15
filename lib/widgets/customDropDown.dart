@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/constants/styles.dart';
 class CustomDropdown extends StatelessWidget {
   final List<String> options;
   final ValueChanged<String?>? onChanged;
@@ -23,6 +24,7 @@ class CustomDropdown extends StatelessWidget {
       onChanged: onChanged,
       decoration: const InputDecoration(
         hintText: 'select',
+        hintStyle: text50010tcolor2,
         contentPadding: EdgeInsets.symmetric(horizontal: 10),
         border: InputBorder.none
       ),

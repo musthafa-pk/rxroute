@@ -33,7 +33,7 @@ class Routes{
         return MaterialPageRoute(builder: (BuildContext context)=>const LoginView());
 
       case RoutesName.add_doctor:
-        return MaterialPageRoute(builder: (BuildContext context)=>const AddDoctor());
+        return MaterialPageRoute(builder: (BuildContext context)=> AddDoctor());
 
       case RoutesName.add_employee:
         return MaterialPageRoute(builder: (BuildContext context)=>const AddRep());

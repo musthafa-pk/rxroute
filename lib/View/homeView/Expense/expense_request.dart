@@ -472,23 +472,17 @@ class _ExpenseRequestPageState extends State<ExpenseRequestPage> {
                         ),
                         ElevatedButton(
                             onPressed: () {
+                              print('pressed');
+                              requestexpense(context);
                               if (_myformKey.currentState!.validate()) {
-                                // Map data = {
-                                //   "staff_id": Utils.empId,
-                                //   "leave_type": selectedLeaveType.toString(),
-                                //   "remarks": reasonController.text.toString(),
-                                //   "from_date": dateInput.text.toString(),
-
-            //   "to_date": dateInput2.text.toString(),
-                                //   // "name": "$firstname $lastname"
-                                // };
+                                print('here ok');
                                 if (selectdDoctor != null &&
                                     dateInput.text.isNotEmpty &&
                                     amount.text.isNotEmpty &&
                                     reasonController.text.isNotEmpty) {
+                                  print('all ok');
                                   // Proceed with leave application
-                                  applyleave(context);
-
+                                  requestexpense(context);
                                 } else {
                                   // Show an error message or alert indicating that all required fields must be filled.
                                   // Utils.flushBarErrorMessage('Please fill in all required fields', context, Colors.red);
@@ -526,45 +520,50 @@ class _ExpenseRequestPageState extends State<ExpenseRequestPage> {
   }
 
   //functions
-  Future<void> applyleave(BuildContext context) async {
+  Future<void> requestexpense(BuildContext context) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? userID = preferences.getString('userID');
+    String? uniqueID = preferences.getString('uniqueID');
+    print('userID${userID} uni id:${uniqueID}');
     Map<String,dynamic> mydata = {
-      "staff_id": '1111',
-      "leave_type": selectdDoctor.toString(),
-      "remarks": reasonController.text.toString(),
-      "from_date": dateInput.text.toString(),
-      "to_date": amount.text.toString(),
+      "amount":amount.text,
+      "remarks":reasonController.text,
+      "attachment":"https://edit.org/img/blog/7c0-free-dental-prescription-template-printable.webp",
+      "trip_date":dateInput.text,
+      "doct_id":selectedDoctorId,
+      "requesterId":userID,
+      "uniqueRequesterId":uniqueID
     };
-    print(mydata);
-    // try {
-    //   print('api run success....');
-    //   // final response = await http.post(Uri.parse(AppUrls.applyLeave),
-    //   //   headers: <String, String>{
-    //   //     'Content-Type': 'application/json',
-    //   //   },
-    //   //   body: jsonEncode(mydata),
-    //   // );
-    //   // print(jsonEncode(mydata));
-    //
-    //   if (response.statusCode == 200) {
-    //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));
-    //
-    //     var responses = jsonDecode(response.body);
-    //     print('Success....${response.body}');
-    //     Utils.flushBarErrorMessage(responses['message'], context,Colors.green);
-    //     // If the server returns a 200 OK response, parse the JSON
-    //     final data = json.decode(response.body);
-    //     // Process the data here, e.g., update your view model or state.
-    //     print(data);
-    //   } else {
-    //     var responses = jsonDecode(response.body);
-    //     Utils.flushBarErrorMessage(responses['message'], context,Colors.red);
-    //     // If the server did not return a 200 OK response,
-    //     // throw an exception or handle the error as needed.
-    //     throw Exception('Failed to load data');
-    //   }
-    // } catch (e) {
-    //   // Handle exceptions, e.g., network errors or timeouts.
-    //   print('Error: $e');
-    // }
+    print('mydata$mydata');
+    try {
+      print('api run success....');
+      final response = await http.post(Uri.parse(AppUrl.expense_request),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(mydata),
+      );
+      print(jsonEncode(mydata));
+
+      if (response.statusCode == 200) {
+
+        var responses = jsonDecode(response.body);
+        print('Success....${response.body}');
+        Utils.flushBarErrorMessage(responses['message'], context);
+        // If the server returns a 200 OK response, parse the JSON
+        final data = json.decode(response.body);
+        // Process the data here, e.g., update your view model or state.
+        print(data);
+      } else {
+        var responses = jsonDecode(response.body);
+        Utils.flushBarErrorMessage(responses['message'], context);
+        // If the server did not return a 200 OK response,
+        // throw an exception or handle the error as needed.
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      // Handle exceptions, e.g., network errors or timeouts.
+      print('Error: $e');
+    }
   }
 }

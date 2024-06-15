@@ -49,27 +49,33 @@ class _LoginViewState extends State<LoginView> {
       );
       print('st code :${response.statusCode}');
       if (response.statusCode == 200) {
-        //sharedpreferences
-        final SharedPreferences prefrence =await SharedPreferences.getInstance();
-        var responseData = jsonDecode(response.body);
-        prefrence.setString('userID', responseData['data'][0]['id'].toString());
-        prefrence.setString('uniqueID', '${responseData['data'][0]['unique_id'].toString()}');
-        prefrence.setString('userType', '${responseData['data'][0]['type'].toString()}');
-        prefrence.setString('userName', '${responseData['data'][0]['name'].toString()}');
+        setState(() async{
+          final SharedPreferences prefrence =await SharedPreferences.getInstance();
+          var responseData = jsonDecode(response.body);
+          prefrence.setString('userID', responseData['data'][0]['id'].toString());
+          prefrence.setString('uniqueID', '${responseData['data'][0]['unique_id'].toString()}');
+          prefrence.setString('userType', '${responseData['data'][0]['type'].toString()}');
+          prefrence.setString('userName', '${responseData['data'][0]['name'].toString()}');
 
-        print('userID:${prefrence.getString('userID')}');
-        print('uni:${prefrence.getString('uniqueID')}');
-        print('userID:${prefrence.getString('userType')}');
-        print('userID:${prefrence.getString('userName')}');
+          print('userID:${prefrence.getString('userID')}');
+          print('uni:${prefrence.getString('uniqueID')}');
+          print('userID:${prefrence.getString('userType')}');
+          print('userID:${prefrence.getString('userName')}');
 
           if(prefrence.getString('userType') == 'rep'){
             Navigator.pushNamed(context, RoutesName.home_rep);
             Utils.flushBarErrorMessage('${responseData['message']}'+' ${prefrence.getString('userName').toString().toUpperCase()}', context);
+            Utils.getuser();
           }else if(prefrence.getString('userType') == 'manager'){
             Navigator.pushNamed(context, RoutesName.home_manager);
             Utils.flushBarErrorMessage('${responseData['message']}'+' ${prefrence.getString('userName').toString().toUpperCase()}', context);
+            Utils.getuser();
+            return responseData;
           }
-          return responseData;
+        });
+        //sharedpreferences
+
+
       } else {
         var responseData = jsonDecode(response.body);
         Utils.flushBarErrorMessage('${responseData['message']}', context);

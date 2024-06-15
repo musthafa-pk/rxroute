@@ -33,9 +33,9 @@ class _LeaveApprovalsState extends State<LeaveApprovals> with SingleTickerProvid
     _tabController = TabController(length: _tabs.length, vsync: this);
 
      _pages = [
-      LeaveApprovalsWidgets.approved('Rep123'),
-      LeaveApprovalsWidgets.rejected('Rep123'),
-      LeaveApprovalsWidgets.pending('Rep123'),
+      LeaveApprovalsWidgets.approved('${Utils.uniqueID}'),
+      LeaveApprovalsWidgets.rejected('${Utils.uniqueID}'),
+      LeaveApprovalsWidgets.pending('${Utils.uniqueID}'),
     ];
   }
 
@@ -51,7 +51,7 @@ class _LeaveApprovalsState extends State<LeaveApprovals> with SingleTickerProvid
       backgroundColor: AppColors.whiteColor,
       appBar: AppBar(
         backgroundColor: AppColors.whiteColor,
-        title: const Text('Leave Approvals', style: TextStyle(color: Colors.black)),
+        title: const Text('My Leaves', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),

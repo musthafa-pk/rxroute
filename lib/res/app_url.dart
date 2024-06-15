@@ -43,6 +43,18 @@ class AppUrl{
 
   static var totalrepcount = '$baseUrl/rep/totalRep';
 
+  static var expense_request = '$baseUrl/rep/report_expense';
+
+  static var add_chemist = '$baseUrl/rep/add_chemist';
+
+  static var get_chemists = '$baseUrl/rep/get_chemist';
+
+  static var search_chemists = '$baseUrl/rep/search_chemist';
+
+  static var delete_chemists = '$baseUrl/rep/delete_chemist';
+
+  static var list_headqrts = '$baseUrl/rep/get_headquarters';
+
 
 
 }

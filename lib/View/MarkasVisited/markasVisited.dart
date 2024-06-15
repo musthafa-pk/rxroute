@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/constants/styles.dart';
 
 import '../../Util/Utils.dart';
 import '../../app_colors.dart';
@@ -24,7 +25,7 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
   List<dynamic> doctorDetails = [];
 
   Future<dynamic> single_doctordetails() async {
-    String url = AppUrl.getdoctors;
+    String url = AppUrl.single_doctor_details;
     Map<String,dynamic> data = {
       "dr_id":widget.doctorID
     };
@@ -185,6 +186,7 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
                     SizedBox(height: 10),
                     Text('Products'),
                     SizedBox(height: 10),
+              Text('${doctorDetails[0]['products'][0]['product']}',style: text50014black,),
                     ListView.builder(
                       shrinkWrap: true,
                       itemCount: 5,

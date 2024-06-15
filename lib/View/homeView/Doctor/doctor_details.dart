@@ -86,7 +86,6 @@ class _DoctorDetailsState extends State<DoctorDetails> with SingleTickerProvider
         onTap: (){
           // Navigator.pushNamed(context, RoutesName.markasvisited,arguments: doctorDetails);
           Navigator.push(context, MaterialPageRoute(builder: (context) => MarkAsVisited(doctorID: widget.doctorID,),));
-          print('ddls:$doctorDetails');
         },
         child: Container(
           decoration: BoxDecoration(
@@ -119,98 +118,98 @@ class _DoctorDetailsState extends State<DoctorDetails> with SingleTickerProvider
             return Center(child: Text(
                 'Some error occured , please restart your application${snapshot.data}'),);
           } else if (snapshot.hasData) {
+            print('${snapshot.data}');
             final List<Widget> _pages = [
-              EmpDetailsWidgets.BasicInfo(doctorDetails),
-              EmpDetailsWidgets.Documents(doctorDetails),
-              EmpDetailsWidgets.Notes(doctorDetails),
+              EmpDetailsWidgets.BasicInfo(snapshot.data),
+              EmpDetailsWidgets.Documents(snapshot.data),
+              EmpDetailsWidgets.Notes(snapshot.data),
             ];
-            return Text('ok');
-            // var snapdata = snapshot.data;
-            // return Column(
-            //   children: [
-            //     Row(
-            //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //       children: [
-            //          CircleAvatar(
-            //           backgroundColor:AppColors.primaryColor,
-            //             radius: 35,
-            //         child: Text('${snapshot.data['data'][0]['doc_name'][0]}',style: text70014,),),
-            //          Column(
-            //           mainAxisAlignment: MainAxisAlignment.start,
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           children: [
-            //             Text(
-            //               '${snapdata['doc_name']}',
-            //               style: TextStyle(
-            //                   color: AppColors.blackColor,
-            //                   fontWeight: FontWeight.w500,
-            //                   fontSize: 17),
-            //             ),
-            //             Text(
-            //               '${snapdata['doc_qualification']}',
-            //               style: TextStyle(
-            //                   color: AppColors.blackColor,
-            //                   fontWeight: FontWeight.w500,
-            //                   fontSize: 12),
-            //             ),
-            //             Text(
-            //               '${snapdata['specialization']}',
-            //               style: TextStyle(
-            //                   color: AppColors.blackColor,
-            //                   fontWeight: FontWeight.w500,
-            //                   fontSize: 12),
-            //             ),
-            //           ],
-            //         ),
-            //         SizedBox(
-            //           height: 24,
-            //           width: 24,
-            //           child: Image.asset('assets/icons/edit.png'),
-            //         )
-            //       ],
-            //     ),
-            //     const SizedBox(height: 10),
-            //     const Padding(
-            //       padding: EdgeInsets.only(right: 20.0, left: 20.0),
-            //       child: Divider(
-            //         color: AppColors.dividerColor,
-            //         thickness: 1.0,
-            //       ),
-            //     ),
-            //     const SizedBox(height: 10),
-            //     const Padding(
-            //       padding: EdgeInsets.only(right: 20.0, left: 20.0),
-            //       child: Column(
-            //         mainAxisAlignment: MainAxisAlignment.start,
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           Text(
-            //             'Reports',
-            //             style: TextStyle(
-            //                 color: AppColors.blackColor,
-            //                 fontWeight: FontWeight.w600,
-            //                 fontSize: 17),
-            //           ),
-            //           SizedBox(height: 10),
-            //         ],
-            //       ),
-            //     ),
-            //     const SizedBox(height: 10),
-            //     TabBar(
-            //       controller: _tabController,
-            //       tabs: _tabs,
-            //       labelColor: Colors.black,
-            //       indicatorColor: Colors.green,
-            //     ),
-            //     Expanded(
-            //       child: TabBarView(
-            //         controller: _tabController,
-            //         children: _pages,
-            //       ),
-            //     ),
-            //
-            //   ],
-            // );
+            var snapdata = snapshot.data[0];
+            return Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                     CircleAvatar(
+                      backgroundColor:AppColors.primaryColor,
+                        radius: 35,
+                    child: Text('${snapdata['doc_name'][0]}',style: text70014,),),
+                     Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${snapdata['doc_name']}',
+                          style: TextStyle(
+                              color: AppColors.blackColor,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 17),
+                        ),
+                        Text(
+                          '${snapdata['doc_qualification']}',
+                          style: TextStyle(
+                              color: AppColors.blackColor,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12),
+                        ),
+                        Text(
+                          '${snapdata['specialization']}',
+                          style: TextStyle(
+                              color: AppColors.blackColor,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Image.asset('assets/icons/edit.png'),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Padding(
+                  padding: EdgeInsets.only(right: 20.0, left: 20.0),
+                  child: Divider(
+                    color: AppColors.dividerColor,
+                    thickness: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Padding(
+                  padding: EdgeInsets.only(right: 20.0, left: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reports',
+                        style: TextStyle(
+                            color: AppColors.blackColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 17),
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TabBar(
+                  controller: _tabController,
+                  tabs: _tabs,
+                  labelColor: Colors.black,
+                  indicatorColor: Colors.green,
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: _pages,
+                  ),
+                ),
+
+              ],
+            );
           }
           return Text('Some error occured please restart your application');
         }

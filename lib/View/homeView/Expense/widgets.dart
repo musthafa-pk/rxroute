@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxroute_test/Util/Utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app_colors.dart';
 import '../../../res/app_url.dart';
 class ExpenseApprovalsWidgets{
@@ -10,9 +11,11 @@ class ExpenseApprovalsWidgets{
   static List<dynamic> listofexpenserequests = [];
 
   static Future<dynamic> getexpenserequests(String userID) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
     String url = AppUrl.get_expense_request_rep;
     Map<String, dynamic> data = {
-      "rep_uniqueid":'Rep1975'
+      "rep_uniqueid":uniqueID
     };
 
     try {
@@ -383,98 +386,103 @@ class ExpenseApprovalsWidgets{
                 }else if(snapshot.hasError){
                   return Center(child: Text('Some error occured !'),);
                 }else if(snapshot.hasData){
-                  return ListView.builder(
-                      itemCount: snapshot.data!.where((item) => item['status'] == 'Pending').toList().length,
-                      shrinkWrap: true,
-                      itemBuilder: (context,index) {
-                        var snapdata = snapshot.data!.where((item) => item['status'] == 'Pending').toList();
-                        return Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.textfiedlColor,
-                                  borderRadius: BorderRadius.circular(6),
+                  return Expanded(
+                    child: ListView.builder(
+                        itemCount: snapshot.data!.where((item) => item['status'] == 'Pending').toList().length,
+                        itemBuilder: (context,index) {
+                          var snapdata = snapshot.data!.where((item) => item['status'] == 'Pending').toList();
+                          return Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.textfiedlColor,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            CircleAvatar(radius: 5,backgroundColor: AppColors.primaryColor,),
+                                            SizedBox(width: 10,),
+                                            Text('#TRNX${snapdata[index]['id']}'),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(left: 20.0),
+                                          child: Text('Sreya Alfrod',style: TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.borderColor,
+                                              fontSize: 12)),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(left: 20.0),
+                                          child: Text('Inna Fred',style: TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.borderColor,
+                                              fontSize: 12)),
+                                        ),
+                                        SizedBox(height: 30,),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.currency_rupee,size: 22,),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.only(top: 12.0),
+                                                      child: Text('${snapdata[index]['amount']}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 16),),
+                                                    ),
+                                                    Text('cash',style: TextStyle(
+                                                        fontWeight: FontWeight.w400,
+                                                        color: AppColors.borderColor,
+                                                        fontSize: 12),),
+                                                    Text('${snapdata[index]['remark']}',style: TextStyle(
+                                                        fontWeight: FontWeight.w400,
+                                                        color: AppColors.borderColor,
+                                                        fontSize: 12),),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.0),
+                                Positioned(
+                                  right: 10,
+                                  top: 10,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          CircleAvatar(radius: 5,backgroundColor: AppColors.primaryColor,),
-                                          SizedBox(width: 10,),
-                                          Text('#TRNX${snapdata[index]['id']}'),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 20.0),
-                                        child: Text('Sreya Alfrod',style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.borderColor,
-                                            fontSize: 12)),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 20.0),
-                                        child: Text('Inna Fred',style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.borderColor,
-                                            fontSize: 12)),
-                                      ),
-                                      SizedBox(height: 30,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(Icons.currency_rupee,size: 22,),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Padding(
-                                                    padding: EdgeInsets.only(top: 12.0),
-                                                    child: Text('${snapdata[index]['amount']}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 16),),
-                                                  ),
-                                                  Text('cash',style: TextStyle(
-                                                      fontWeight: FontWeight.w400,
-                                                      color: AppColors.borderColor,
-                                                      fontSize: 12),)
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
+                                      Text('${Utils.getTime(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
+                                      Text('${Utils.formatDate(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
                                     ],
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                right: 10,
-                                top: 10,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${Utils.getTime(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
-                                    Text('${Utils.formatDate(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
-                                  ],
-                                ),
-                              ),
-                              Positioned(
-                                right: 20,
-                                top: 65,
-                                child: Text('${snapdata[index]['status']}',style: TextStyle(
-                                    color: AppColors.primaryColor3,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14
-                                ),),
-                              )
-                            ],
-                          ),
-                        );
-                      }
+                                Positioned(
+                                  right: 20,
+                                  top: 65,
+                                  child: Text('${snapdata[index]['status']}',style: TextStyle(
+                                      color: AppColors.primaryColor3,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 14
+                                  ),),
+                                )
+                              ],
+                            ),
+                          );
+                        }
+                    ),
                   );
                 }
                 return Center(child: Text('Please restart your application'),);
@@ -538,7 +546,11 @@ class ExpenseApprovalsWidgets{
                               Text('cash',style: TextStyle(
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.borderColor,
-                                  fontSize: 12),)
+                                  fontSize: 12),),
+                              Text('cash',style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.borderColor,
+                                  fontSize: 12),),
                             ],
                           ),
                         ],

@@ -1,22 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:rxroute_test/View/homeView/Doctor/doctor_details.dart';
-import 'package:rxroute_test/app_colors.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../../../Util/Utils.dart';
+import '../../../app_colors.dart';
 import '../../../res/app_url.dart';
 
-class DoctorsList extends StatefulWidget {
-  const DoctorsList({super.key});
+class Chemistlist extends StatefulWidget {
+  const Chemistlist({super.key});
 
   @override
-  State<DoctorsList> createState() => _DoctorsListState();
+  State<Chemistlist> createState() => _ChemistlistState();
 }
 
-class _DoctorsListState extends State<DoctorsList> {
-  List<dynamic> list_of_doctors = [];
+class _ChemistlistState extends State<Chemistlist> {
+  List<dynamic> list_of_chemist = [];
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true; // To handle loading state
   bool _isSearching = false; // To handle searching state
@@ -25,7 +24,7 @@ class _DoctorsListState extends State<DoctorsList> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    getdoctors(); // Fetch the initial list of doctors
+    getchemists(); // Fetch the initial list of doctors
   }
 
   @override
@@ -35,10 +34,10 @@ class _DoctorsListState extends State<DoctorsList> {
     super.dispose();
   }
 
-  Future<void> getdoctors() async {
+  Future<dynamic> getchemists() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     String? uniqueId = preferences.getString('uniqueID');
-    String url = AppUrl.getdoctors;
+    String url = AppUrl.get_chemists;
     Map<String, dynamic> data = {
       "rep_UniqueId": uniqueId
     };
@@ -59,9 +58,9 @@ class _DoctorsListState extends State<DoctorsList> {
 
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
-        print('doctors list : $responseData');
+        print('chemist list : $responseData');
         setState(() {
-          list_of_doctors = responseData['data'];
+          list_of_chemist = responseData['data'];
           _isLoading = false;
         });
       } else {
@@ -80,8 +79,8 @@ class _DoctorsListState extends State<DoctorsList> {
     }
   }
 
-  Future<void> searchdoctors() async {
-    String url = AppUrl.searchdoctors;
+  Future<void> searchchemists() async {
+    String url = AppUrl.search_chemists;
     Map<String, dynamic> data = {
       "searchData": _searchController.text
     };
@@ -98,11 +97,11 @@ class _DoctorsListState extends State<DoctorsList> {
         var responseData = jsonDecode(response.body);
         print('filtered list : $responseData');
         setState(() {
-          list_of_doctors = responseData['data'];
+          list_of_chemist = responseData['data'];
           _isSearching = true;
         });
         if (responseData['data'].isEmpty) {
-          getdoctors();
+          getchemists();
         }
       } else {
         var responseData = jsonDecode(response.body);
@@ -114,12 +113,15 @@ class _DoctorsListState extends State<DoctorsList> {
     }
   }
 
-  Future<void> deletedoctor(int doctorID) async {
-    print('delete doctor called....');
+  Future<void> deletechemists(int chemistID) async {
+    print('delete chemists called....');
     String url = AppUrl.delete_doctor; // Assuming there's a delete URL
     Map<String, dynamic> data = {
-      "dr_id": doctorID
+      "chemist_id": chemistID
     };
+
+    print('chemistID:$chemistID');
+    print(data);
 
     try {
       final response = await http.post(
@@ -130,11 +132,14 @@ class _DoctorsListState extends State<DoctorsList> {
         body: jsonEncode(data),
       );
 
+      print(response.statusCode);
+      print(response.body);
       if (response.statusCode == 200) {
         print('delete success');
         var responseData = jsonDecode(response.body);
         Utils.snackBar('${responseData['message']}', context);
-        getdoctors(); // Refresh the list after deletion
+        getchemists(); // Refresh the list after deletion
+        Navigator.pop(context);
       } else {
         print('delete failed...');
         var responseData = jsonDecode(response.body);
@@ -146,11 +151,12 @@ class _DoctorsListState extends State<DoctorsList> {
     }
   }
 
+
   _onSearchChanged() {
     if (_searchController.text.isEmpty) {
-      getdoctors();
+      getchemists();
     } else {
-      searchdoctors();
+      searchchemists();
     }
   }
 
@@ -170,31 +176,31 @@ class _DoctorsListState extends State<DoctorsList> {
     final int hash = name.codeUnits.fold(0, (int sum, int char) => sum + char);
     return pastelColors[hash % pastelColors.length];
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text('Doctors list', style: TextStyle(),),
-        centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.primaryColor, // Replace with your desired color
+              color:AppColors.primaryColor, // Replace with your desired color
               borderRadius: BorderRadius.circular(6),
             ),
-            child: InkWell(onTap: () {
+            child: InkWell(onTap: (){
               Navigator.pop(context);
             },
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        centerTitle: true,
+        title: const Text(
+          'Chemist List',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+        ),
       ),
       body: RefreshIndicator(
-        onRefresh: getdoctors,
+        onRefresh: getchemists,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -237,22 +243,23 @@ class _DoctorsListState extends State<DoctorsList> {
                 ),
                 Expanded(
                   child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView.builder(
-                    itemCount: list_of_doctors.length,
+                    itemCount: list_of_chemist.length,
                     itemBuilder: (context, index) {
-                      var doctor = list_of_doctors[index];
+                      var chemist = list_of_chemist[index];
+                      print('chemist:$chemist');
                       return InkWell(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(
-                            builder: (context) => DoctorDetails(doctorID: doctor['id']),
-                          ));
+                          // Navigator.push(context, MaterialPageRoute(
+                          //   builder: (context) => DoctorDetails(doctorID: doctor['id']),
+                          // ));
                         },
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: getPastelColor(doctor['doc_name']),
-                            child: Text("${doctor['doc_name'][0]}"),
+                            backgroundColor: getPastelColor(chemist['building_name']),
+                            child: Text("${chemist['building_name'][0]}"),
                           ),
-                          title: Text(doctor['doc_name']),
-                          subtitle: Text(doctor['specialization']),
+                          title: Text(chemist['building_name']),
+                          subtitle: Text(chemist['address']),
                           trailing: PopupMenuButton<String>(
                             color: AppColors.whiteColor,
                             onSelected: (String result) async {
@@ -260,7 +267,7 @@ class _DoctorsListState extends State<DoctorsList> {
                                 print('Edit action');
                               } else if (result == 'delete') {
                                 print('else if of delete');
-                                await _showDeleteConfirmationDialog(context, doctor['doc_name'], doctor['id']);
+                                await _showDeleteConfirmationDialog(context, chemist['building_name'], chemist['id']);
                               }
                             },
                             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -284,11 +291,10 @@ class _DoctorsListState extends State<DoctorsList> {
             ),
           ),
         ),
-      ),
+      )
     );
   }
-
-  Future<void> _showDeleteConfirmationDialog(BuildContext context, String doctorName, int doctorID)async {
+  Future<void> _showDeleteConfirmationDialog(BuildContext context, String doctorName, int chemistID)async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -306,7 +312,7 @@ class _DoctorsListState extends State<DoctorsList> {
               child: const Text("Yes"),
               onPressed: () async{
                 print('pressed yes');
-                await deletedoctor(doctorID);
+                await deletechemists(chemistID);
                 Navigator.pop(context);
               },
             ),

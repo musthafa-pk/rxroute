@@ -22,9 +22,9 @@ class _ExpenseApprovalsState extends State<ExpenseApprovals> with SingleTickerPr
   ];
 
   final List<Widget> _pages = [
-    ExpenseApprovalsWidgets.approved("Rep1975"),
-    ExpenseApprovalsWidgets.rejected("Rep1975"),
-    ExpenseApprovalsWidgets.pending("Rep1975"),
+    ExpenseApprovalsWidgets.approved("${Utils.uniqueID}"),
+    ExpenseApprovalsWidgets.rejected("${Utils.uniqueID}"),
+    ExpenseApprovalsWidgets.pending("${Utils.uniqueID}"),
   ];
 
   @override
@@ -57,7 +57,7 @@ class _ExpenseApprovalsState extends State<ExpenseApprovals> with SingleTickerPr
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
-        title: const Text('Expense Approvals', style: TextStyle(color: Colors.black)),
+        title: const Text('My Expenses', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
