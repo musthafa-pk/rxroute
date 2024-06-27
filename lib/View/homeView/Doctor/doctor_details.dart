@@ -84,8 +84,9 @@ class _DoctorDetailsState extends State<DoctorDetails> with SingleTickerProvider
       backgroundColor: AppColors.whiteColor,
       floatingActionButton: InkWell(
         onTap: (){
+          print('ddtls:${doctorDetails[0]['products']}');
           // Navigator.pushNamed(context, RoutesName.markasvisited,arguments: doctorDetails);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => MarkAsVisited(doctorID: widget.doctorID,),));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => MarkAsVisited(doctorID: widget.doctorID,products: doctorDetails[0]['products'],),));
         },
         child: Container(
           decoration: BoxDecoration(

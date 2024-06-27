@@ -6,7 +6,8 @@ import '../../../app_colors.dart';
 import '../../../main.dart';
 
 class EventCardWidget extends StatelessWidget {
-  const EventCardWidget({super.key});
+  List<dynamic> dataset;
+  EventCardWidget({required this.dataset,super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +36,8 @@ class EventCardWidget extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
-                const Text(
-                  'Its Heleena Hills Birthday !',
+                 Text(
+                  'Its ${dataset[0]['todayBirthday'][0]['doc_name']} Birthday !',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: AppColors.whiteColor,
@@ -44,7 +45,7 @@ class EventCardWidget extends StatelessWidget {
                   ),
                 ),
                 const Text(
-                  'Wish her all the Best',
+                  'Wish an all the Best',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: AppColors.whiteColor,
@@ -52,15 +53,15 @@ class EventCardWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
-                const Row(
+                 Row(
                   children: [
-                    CircleAvatar(radius: 25),
+                    CircleAvatar(radius: 25,child: Text('${dataset[0]['todayBirthday'][0]['doc_name'][0].toString().toUpperCase()}'),),
                     SizedBox(width: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Dr.Helena Hills',
+                          '${dataset[0]['todayBirthday'][0]['doc_name']}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: AppColors.whiteColor,
@@ -68,7 +69,7 @@ class EventCardWidget extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Pediatrition',
+                          '${dataset[0]['todayBirthday'][0]['doc_qualification']}',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: AppColors.whiteColor,
@@ -82,7 +83,6 @@ class EventCardWidget extends StatelessWidget {
                 const SizedBox(height: 10),
                 InkWell(
                   onTap: ()async{
-
                   },
                   child: SizedBox(
                     width: 130,

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,7 +72,6 @@ class _ExpenseRequestPageState extends State<ExpenseRequestPage> {
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
         Map<String, int> doctorsMap = {};
-
         for (var doctor in responseData['data']) {
           doctorsMap[doctor['doc_name']] = doctor['id'];
         }
@@ -521,6 +521,7 @@ class _ExpenseRequestPageState extends State<ExpenseRequestPage> {
 
   //functions
   Future<void> requestexpense(BuildContext context) async {
+    print('request expense called...');
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? userID = preferences.getString('userID');
     String? uniqueID = preferences.getString('uniqueID');
@@ -531,7 +532,7 @@ class _ExpenseRequestPageState extends State<ExpenseRequestPage> {
       "attachment":"https://edit.org/img/blog/7c0-free-dental-prescription-template-printable.webp",
       "trip_date":dateInput.text,
       "doct_id":selectedDoctorId,
-      "requesterId":userID,
+      "requesterId":int.parse(userID.toString()),
       "uniqueRequesterId":uniqueID
     };
     print('mydata$mydata');
@@ -549,6 +550,7 @@ class _ExpenseRequestPageState extends State<ExpenseRequestPage> {
 
         var responses = jsonDecode(response.body);
         print('Success....${response.body}');
+        Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => false,);
         Utils.flushBarErrorMessage(responses['message'], context);
         // If the server returns a 200 OK response, parse the JSON
         final data = json.decode(response.body);

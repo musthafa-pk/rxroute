@@ -92,10 +92,10 @@ class LeaveApprovalsWidgets{
                     ),
                     const SizedBox(height: 10,),
                     ListView.builder(
-                        itemCount: snapshot.data!['data'].where((item)=>item['status'] == 'Approved').toList().length,
+                        itemCount: snapshot.data!['data'].where((item)=>item['status'] == 'Accepted').toList().length,
                         shrinkWrap: true,
                         itemBuilder: (context,index) {
-                          var snapdata = snapshot.data!['data'].where((item)=>item['status'] == 'Approved').toList();
+                          var snapdata = snapshot.data!['data'].where((item)=>item['status'] == 'Accepted').toList();
                           int dayDiffrence = Utils.calculateDaysDifference(
                               snapdata[index]['from_date'],
                               snapdata[index]['to_date']
@@ -226,8 +226,6 @@ class LeaveApprovalsWidgets{
         }
     );
   }
-
-
 
   static Widget rejected(String ID) {
     return FutureBuilder(

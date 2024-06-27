@@ -8,14 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Util/Utils.dart';
 import '../../../res/app_url.dart';
 
-class DoctorsList extends StatefulWidget {
-  const DoctorsList({super.key});
+class DoctorsListManager extends StatefulWidget {
+  const DoctorsListManager({super.key});
 
   @override
-  State<DoctorsList> createState() => _DoctorsListState();
+  State<DoctorsListManager> createState() => _DoctorsListManagerState();
 }
 
-class _DoctorsListState extends State<DoctorsList> {
+class _DoctorsListManagerState extends State<DoctorsListManager> {
   List<dynamic> list_of_doctors = [];
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true; // To handle loading state

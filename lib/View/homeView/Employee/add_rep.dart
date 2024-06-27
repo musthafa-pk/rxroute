@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/constants/styles.dart';
 import 'package:rxroute_test/widgets/customDropDown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,13 +30,13 @@ class _AddRepState extends State<AddRep> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _designationController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  // final TextEditingController _confirmPasswordController = TextEditingController();
 
   String _gender = '';
-  String _selectedQualification = '';
-  String _selectedReportingOfficer = '';
 
-  List<int> reportingOfficers = [1, 2, 3, 4];
+  List<Officer> _officers = [];
+  String? _selectedReportingOfficer;
 
   Headquarter? selectedHeadquarter;
 
@@ -54,6 +55,32 @@ class _AddRepState extends State<AddRep> {
     }
   }
 
+  Future<List<Officer>> fetchofficers() async {
+    String url = AppUrl.managers_list; // Replace with your actual API URL
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      var officersJson = data['data'] as List;
+      List<Officer> officers = officersJson.map((officer) => Officer.fromJson(officer)).toList();
+      return officers;
+    } else {
+      throw Exception('Failed to load headquarters');
+    }
+  }
+
+  void _loadOfficers() async {
+    try {
+      List<Officer> officers = await fetchofficers();
+      setState(() {
+        _officers = officers;
+      });
+    } catch (e) {
+      // Handle error
+      print(e);
+    }
+  }
+
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
@@ -66,29 +93,31 @@ class _AddRepState extends State<AddRep> {
     }
   }
 
-
-
   Future<void> addEmployee() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    int myid = int.parse(preferences.getString('userID').toString());
-    if (_passwordController.text != _confirmPasswordController.text) {
-      Utils.flushBarErrorMessage('Passwords do not match', context);
-      return;
-    }
+    String? myid = preferences.getString('userID');
+    String? uniqueID = preferences.getString('uniqueID');
+    // if (_passwordController.text != _confirmPasswordController.text) {
+    //   Utils.flushBarErrorMessage('Passwords do not match', context);
+    //   return;
+    // }
 
     String url = AppUrl.add_employee;
     Map<String, dynamic> data = {
-      "name": _nameController.text,
-      "gender": _gender,
-      "dob": _dobController.text,
-      "nationality": _nationalityController.text,
-      "mobile": _mobileController.text,
-      "email": _emailController.text,
-      "designation": _designationController.text,
-      "qualification": _selectedQualification,
-      "reporting_officer": _selectedReportingOfficer,
-      "created_by": myid,
-      "password": _passwordController.text,
+      "name":_nameController.text,
+      "gender":_gender,
+      "dob":_dobController.text,
+      "nationality":_nationalityController.text,
+      "mobile":_mobileController.text,
+      "email":_emailController.text,
+      "designation":_designationController.text,
+      "qualification":_qualificationController.text,
+      "reporting_officer":int.parse(_selectedReportingOfficer.toString()),
+      "created_by":int.parse(myid.toString()),
+      "password":_passwordController.text,
+      "type":_designationController.text,
+      "address":_addressController.text,
+      "headquarters":int.parse(selectedHeadquarter!.id.toString())
     };
 
     try {
@@ -104,7 +133,9 @@ class _AddRepState extends State<AddRep> {
       print('${response.body}');
 
       if (response.statusCode == 200) {
-        Utils.flushBarErrorMessage('Employee added successfully!', context);
+        Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => false,);
+        Utils.flushBarErrorMessage('Employee adde'
+            'd successfully!', context);
       } else {
         var responseData = jsonDecode(response.body);
         Utils.flushBarErrorMessage('${responseData['message']}', context);
@@ -113,6 +144,7 @@ class _AddRepState extends State<AddRep> {
       Utils.flushBarErrorMessage('Failed to load data: $e', context);
     }
   }
+
 
   @override
   void dispose() {
@@ -124,7 +156,8 @@ class _AddRepState extends State<AddRep> {
     _emailController.dispose();
     _designationController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _addressController.dispose();
+    // _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -132,6 +165,7 @@ class _AddRepState extends State<AddRep> {
   void initState() {
     // TODO: implement initState
     fetchHeadquarters();
+    _loadOfficers();
     super.initState();
   }
 
@@ -303,6 +337,7 @@ class _AddRepState extends State<AddRep> {
                               keyboardType: TextInputType.phone,
                               maxLength: 10,
                               decoration: InputDecoration(
+                                contentPadding: EdgeInsets.only(left: 10),
                                 border: InputBorder.none,
                                 hintText: 'Mobile Number',
                                 hintStyle: text50010tcolor2,
@@ -428,7 +463,7 @@ class _AddRepState extends State<AddRep> {
                                   );
 
                                   if (pickedDate != null) {
-                                    // Change the format of the date here
+                                    // Change the form  at of the date here
                                     String formattedDate = DateFormat('dd-MM-yyyy').format(pickedDate);
                                     setState(() {
                                       _dobController.text = formattedDate;
@@ -463,7 +498,12 @@ class _AddRepState extends State<AddRep> {
                             child: CustomDropdown(
                               options: ['Reporter','Manager'],
                               onChanged: (value) {
-                                _designationController.text = value.toString();
+                                if(value == 'Reporter'){
+                                  _designationController.text = "rep";
+                                }else if(value == 'Manager'){
+                                  _designationController.text = value.toString();
+                                }
+                                // _designationController.text = value.toString();
                               },
                             )
                           )
@@ -478,11 +518,19 @@ class _AddRepState extends State<AddRep> {
                   children: [
                     Text('Reporting Officer',style:text50012black,),
                     SizedBox(height: 10,),
-                    CustomDropdown(
-                        options: ['Reporter 1','Reporter 2'],
-                      onChanged: (value) {
-                        _selectedReportingOfficer = value.toString();
-                      },
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.textfiedlColor,
+                        borderRadius: BorderRadius.circular(6)
+                      ),
+                      child: CustomDropdown(
+                          options:_officers.map((officer)=> officer.name).toList(),
+                        onChanged: (value) {
+                            setState(() {
+                              _selectedReportingOfficer = _officers.firstWhere((officer) => officer.name == value).id.toString();
+                            });
+                        },
+                      ),
                     )
                   ],
                 ),
@@ -528,8 +576,6 @@ class _AddRepState extends State<AddRep> {
                           return Center(child: Text('No Headquarters Available'));
                         } else {
                           return Container(
-                            height: 70,
-                            width: MediaQuery.of(context).size.width,
                             decoration: BoxDecoration(
                               color: AppColors.textfiedlColor,
                             ),
@@ -549,6 +595,30 @@ class _AddRepState extends State<AddRep> {
                   ],
                 ),
                 SizedBox(height: 10,),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Personal Address',style: text50014black,),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.textfiedlColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: TextFormField(
+                        controller: _addressController,
+                        maxLines: 3,
+                        maxLength: 118,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.only(left: 10),
+                          border: InputBorder.none,
+                          hintText: 'Personel Address',
+                          counterText: '',
+                          hintStyle: text50010tcolor2
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -818,22 +888,38 @@ class CustomDropdownHeadQrt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<Headquarter>(
-      hint: Text('Select Headquarter'),
-      value: selectedHeadquarter,
-      items: options.map((Headquarter headquarter) {
-        return DropdownMenuItem<Headquarter>(
-          value: headquarter,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${headquarter.headquarterName}'),
-              Text('${headquarter.subHeadquarter}'),
-            ],
-          )
-        );
-      }).toList(),
-      onChanged: onChanged,
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      child: DropdownButton<Headquarter>(
+        hint: Text('Select Headquarter'),
+        value: selectedHeadquarter,
+        items: options.map((Headquarter headquarter) {
+          return DropdownMenuItem<Headquarter>(
+            value: headquarter,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${headquarter.headquarterName}  ${headquarter.subHeadquarter}'),
+                // Text('${headquarter.subHeadquarter}'),
+              ],
+            )
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+class Officer {
+  final int id;
+  final String name;
+
+  Officer({required this.id, required this.name});
+
+  factory Officer.fromJson(Map<String, dynamic> json) {
+    return Officer(
+      id: json['id'],
+      name: json['name'],
     );
   }
 }

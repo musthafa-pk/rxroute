@@ -98,6 +98,7 @@ flutter:
     - assets/icons/tp.png
     - assets/icons/chemist_list.png
     - assets/icons/expense.png
+    - assets/icons/tplist.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

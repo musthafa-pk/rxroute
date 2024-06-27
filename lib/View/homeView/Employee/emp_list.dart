@@ -22,10 +22,10 @@ class _EmpListState extends State<EmpList> {
 
   Future<dynamic> getemployees() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? uniqueid = preferences.getString('uniqueID');
+    String? userID = preferences.getString('userID');
     String url = AppUrl.get_employee;
     Map<String, dynamic> data = {
-      "manager_id": uniqueid
+      "manager_id": int.parse(userID.toString())
     };
 
     try {
@@ -36,7 +36,9 @@ class _EmpListState extends State<EmpList> {
         },
         body: jsonEncode(data),
       );
-
+      print(userID);
+      print(response.body);
+      print('st:${response.statusCode}');
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
         print('employee list : $responseData');
@@ -54,9 +56,9 @@ class _EmpListState extends State<EmpList> {
   }
 
   Future<dynamic> deleteemployee(String empID) async {
-    String url = AppUrl.getdoctors;
+    String url = AppUrl.delete_employee;
     Map<String, dynamic> data = {
-      "dr_id": empID
+      "rep_id": int.parse(empID.toString())
     };
 
     try {
@@ -161,8 +163,10 @@ class _EmpListState extends State<EmpList> {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) =>  EmpDetails(empID: snapdata['id'],),));
                               },
                               child: ListTile(
-                                leading: const CircleAvatar(),
-                                title: Text('${snapdata[index]['rep_name']}'),
+                                leading:  CircleAvatar(
+                                  child: Text('${snapdata[index]['name'][0]}'),
+                                ),
+                                title: Text('${snapdata[index]['name']}'),
                                 subtitle: Text('${snapdata[index]['email']}'),
                                 trailing: PopupMenuButton<String>(
                                   color: AppColors.whiteColor,
@@ -170,7 +174,7 @@ class _EmpListState extends State<EmpList> {
                                     if(result == 'edit'){
                                       print('Edit action');
                                     }else if(result == 'delete'){
-                                      _showDeleteConfirmationDialog(context, '${snapdata[index]['rep_name']}','${snapdata[index]['id']}');
+                                      _showDeleteConfirmationDialog(context, '${snapdata[index]['name']}','${snapdata[index]['id']}');
                                     }
                                   }, itemBuilder: (BuildContext context)=><PopupMenuEntry<String>>[
                                   const PopupMenuItem<String>(

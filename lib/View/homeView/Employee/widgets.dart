@@ -100,6 +100,15 @@ class EmpDetailsWidgets{
                 child: Text('${doctordetails[0]['products'][index]['product']}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12))
               );
             }
+          ) ,
+          Text('Chemists'),
+          Expanded(
+            child: ListView.builder(
+              itemCount: doctordetails[0]['chemist'].length,
+              itemBuilder: (context,index) {
+                return Text('${doctordetails[0]['chemist'][0]['address']}');
+              }
+            ),
           )
         ],
       ),

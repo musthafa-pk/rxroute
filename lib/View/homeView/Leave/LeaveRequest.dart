@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:rxroute_test/res/app_url.dart';
 import 'package:rxroute_test/widgets/customDropDown.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class LeaveApplyPage extends StatefulWidget {
   const LeaveApplyPage({super.key});
 
@@ -34,10 +36,14 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
     super.initState();
   }
 
-  Future<void> applyLeave() async {
+  Future<dynamic> applyLeave() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
+    String? userID = preferences.getString('userID');
+    print('userID:${userID}');
     Map<String, dynamic> data = {
-        "requester_id":2,
-        "requester_uniqueId":"Rep1234",
+        "requester_id":int.parse(userID.toString()),
+        "requester_uniqueId":uniqueID,
         "reason":reasonController.text,
         "to_date":dateInput2.text,
         "from_date":dateInput.text,
@@ -58,7 +64,7 @@ class _LeaveApplyPageState extends State<LeaveApplyPage> {
       if (response.statusCode == 200) {
         var responses = jsonDecode(response.body);
         print('responses:${responses['message']}');
-        Navigator.pop(context);
+        Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => false,);
         Utils.flushBarErrorMessage('${responses['message']}', context);
       } else {
         var responses = jsonDecode(response.body);

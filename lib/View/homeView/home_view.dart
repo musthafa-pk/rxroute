@@ -4,16 +4,22 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxroute_test/View/events/events.dart';
+import 'package:rxroute_test/View/events/upcoming_events.dart';
+import 'package:rxroute_test/View/homeView/Doctor/doctors_list_manager.dart';
 import 'package:rxroute_test/View/homeView/Employee/add_rep.dart';
+import 'package:rxroute_test/View/homeView/Expense/exp_manager/exp_approve_manager.dart';
+import 'package:rxroute_test/View/homeView/Expense/exp_manager/expense_approvals_manager.dart';
+import 'package:rxroute_test/View/homeView/Leave/leav_manager/manger_approve_leaves.dart';
 import 'package:rxroute_test/View/homeView/Leave/LeaveRequest.dart';
 import 'package:rxroute_test/View/homeView/Leave/leaveApprovals.dart';
 import 'package:rxroute_test/View/homeView/Doctor/add_doctor.dart';
-import 'package:rxroute_test/View/homeView/Doctor/doctors_list.dart';
 import 'package:rxroute_test/View/homeView/Employee/emp_list.dart';
 import 'package:rxroute_test/View/homeView/widgets/CustomDrawer.dart';
 import 'package:rxroute_test/View/notification/notification.dart';
 import '../../app_colors.dart';
 import '../../res/app_url.dart';
+import '../Add TP/add_tp.dart';
+import '../Add TP/tp_list.dart';
 import '../events/widgets/eventCardWidget.dart';
 import 'Expense/expense_approvals.dart';
 import 'Expense/expense_request.dart';
@@ -88,6 +94,40 @@ class _HomeViewState extends State<HomeView> {
       }
     } catch (e) {
       print('Exception: $e'); // Added print statement for exceptions
+      throw Exception('Failed to load data: $e');
+    }
+  }
+
+  List<dynamic> myeventstoday = [];
+  List<dynamic> myeventsupcoming = [];
+  Map<String,dynamic> allevents = {};
+
+  Future<dynamic> getEvents() async {
+    print('get events called...');
+    final url = Uri.parse(AppUrl.getEvents);
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        // If the server returns a 200 OK response, parse the JSON
+        var responseData = jsonDecode(response.body);
+        myeventstoday.clear();
+        myeventsupcoming.clear();
+        myeventstoday.addAll(responseData['todayEvents']);
+        myeventsupcoming.addAll(responseData['UpcomingEvents'][0]['AnniversaryNotification']);
+        allevents.clear();
+        allevents.addAll({'upcoming':myeventsupcoming,"todays":myeventstoday});
+        print('all events:$allevents');
+        print('myeventstoday:$myeventstoday');
+        print('myeventsupcoming:$myeventsupcoming');
+        // return json.decode(response.body);
+        return allevents;
+      } else {
+        // If the server returns an error, throw an exception
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      // Handle any exceptions that occur during the request
       throw Exception('Failed to load data: $e');
     }
   }
@@ -311,7 +351,7 @@ class _HomeViewState extends State<HomeView> {
                   children: <Widget>[
                     InkWell(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsList(),));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsListManager(),));
                       },
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -421,7 +461,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     InkWell(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovalsManger(),));
                       },
                       child: SizedBox(
                         child: Column(
@@ -445,7 +485,7 @@ class _HomeViewState extends State<HomeView> {
 
                     InkWell(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerApproveLeaves(),));
                       },
                       child: SizedBox(
                         child: Column(
@@ -468,7 +508,7 @@ class _HomeViewState extends State<HomeView> {
 
                     InkWell(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovalsManager(),));
                       },
                       child: SizedBox(
                         child: Column(
@@ -483,6 +523,52 @@ class _HomeViewState extends State<HomeView> {
                                     fontWeight: FontWeight.w600
                                 ),),
 
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    InkWell(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ListTP(),));
+                      },
+                      child: SizedBox(
+                        child: Column(
+                          children: [
+                            Expanded(child: Image.asset('assets/icons/tplist.png')),
+                            const Column(
+                              children: [
+                                Text('My',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+                                Text('TP',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    InkWell(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => AddTravelPlan(),));
+                      },
+                      child: SizedBox(
+                        child: Column(
+                          children: [
+                            Expanded(child: Image.asset('assets/icons/tp.png')),
+                            const Column(
+                              children: [
+                                Text('Travel',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
+                                Text('Plan',style: TextStyle(
+                                    fontWeight: FontWeight.w600
+                                ),),
                               ],
                             )
                           ],
@@ -506,14 +592,26 @@ class _HomeViewState extends State<HomeView> {
                       },
                       child: const Text('See all',style: TextStyle(
                           color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      decoration: TextDecoration.underline),),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          decoration: TextDecoration.underline),),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10,),
-                const EventCardWidget(),
+                FutureBuilder(
+                    future: getEvents(),
+                    builder: (context,snapshot) {
+                      if(snapshot.connectionState == ConnectionState.waiting){
+                        return Center(child: CircularProgressIndicator(),);
+                      }else if(snapshot.hasError){
+                        return Center(child: Text('Some error occured !'),);
+                      }else if(snapshot.hasData){
+                        return EventCardWidget( dataset: snapshot.data['todays'],);
+                      }
+                      return Center(child: Text('Some error occured , Please restart your application !'),);
+                    }
+                ),
                 const SizedBox(height: 20,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -524,7 +622,7 @@ class _HomeViewState extends State<HomeView> {
                     ),),
                     InkWell(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => Events(eventType: 'Upcoming Events'),));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => UpcomingEvents(eventType: 'Upcoming Events'),));
                       },
                       child: const Text('See all',style: TextStyle(
                           color: AppColors.primaryColor,
@@ -535,78 +633,85 @@ class _HomeViewState extends State<HomeView> {
                   ],
                 ),
                 const SizedBox(height: 10,),
-                Stack(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(6)
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
-                            const Text('Its Heleena Hills Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
-                            const Text('Wish her all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                            const SizedBox(height: 30,),
-                            const Row(
-                              children: [
-                                CircleAvatar(radius: 25,),
-                                SizedBox(width: 10,),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Dr.Helena Hills',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                    Text('Pediatrition',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
-                                  ],
-                                )
-                              ],
+                FutureBuilder(
+                    future: getEvents(),
+                    builder: (context,snapshot) {
+                      var eventdata = snapshot.data['upcoming'][0];
+                      return Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                borderRadius: BorderRadius.circular(6)
                             ),
-                            const SizedBox(height: 10,),
-                            SizedBox(
-                              width: 130,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: AppColors.primaryColor2,
-                                    borderRadius: BorderRadius.circular(6)
-                                ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                  Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                  const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                  const SizedBox(height: 30,),
+                                  Row(
                                     children: [
-                                      Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                      CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
                                       SizedBox(width: 10,),
-                                      Icon(Icons.notifications_active,color: AppColors.whiteColor,)
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                          Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
+                                        ],
+                                      )
                                     ],
                                   ),
-                                ),
+                                  const SizedBox(height: 10,),
+                                  SizedBox(
+                                    width: 130,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: AppColors.primaryColor2,
+                                          borderRadius: BorderRadius.circular(6)
+                                      ),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                            SizedBox(width: 10,),
+                                            Icon(Icons.notifications_active,color: AppColors.whiteColor,),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
                               ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        height: 70,
-                        width: 100,
-                        decoration: const BoxDecoration(
-                            color:AppColors.primaryColor2,
-                            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Image.asset('assets/icons/cake.png'),
-                        ),
-                      ),
-                    )
-                  ],
-                )
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              height: 70,
+                              width: 100,
+                              decoration: const BoxDecoration(
+                                  color:AppColors.primaryColor2,
+                                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(15.0),
+                                child: Image.asset('assets/icons/cake.png'),
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+                    }
+                ),
+                const SizedBox(height: 70,)
               ],
             ),
           ),

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/constants/styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Util/Utils.dart';
 import '../../app_colors.dart';
@@ -10,7 +12,8 @@ import 'package:http/http.dart' as http;
 
 class MarkAsVisited extends StatefulWidget {
   int doctorID;
-  MarkAsVisited({required this.doctorID,Key? key}) : super(key: key);
+  List<dynamic> products;
+  MarkAsVisited({required this.doctorID,required this.products,Key? key}) : super(key: key);
 
   @override
   State<MarkAsVisited> createState() => _MarkAsVisitedState();
@@ -20,7 +23,7 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
   bool _isChecked = false;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  String _remarks = '';
+  final TextEditingController _remark = TextEditingController();
 
   List<dynamic> doctorDetails = [];
 
@@ -54,34 +57,75 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
   }
 
 
-  void _pickDate() async {
-    DateTime? pickedDate = await showDatePicker(
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-
-    if (pickedDate != null) {
+    if (picked != null && picked != _selectedDate)
       setState(() {
-        _selectedDate = pickedDate;
+        _selectedDate = picked;
       });
-    }
   }
 
-  void _pickTime() async {
-    TimeOfDay? pickedTime = await showTimePicker(
+  Future<void> _pickTime() async {
+    final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: _selectedTime ?? TimeOfDay.now(),
     );
-
-    if (pickedTime != null) {
+    if (picked != null && picked != _selectedTime)
       setState(() {
-        _selectedTime = pickedTime;
+        _selectedTime = picked;
       });
-    }
   }
 
+  Future<dynamic>markasvisited()async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
+    String? userID = preferences.getString('userID');
+    String url = AppUrl.mark_as_visited;
+    Map<String,dynamic> data = {
+      "reporterUniqueId":uniqueID,
+      "reporterId":int.parse(userID.toString()),
+      "date":_selectedDate?.toIso8601String(),
+      "time":_selectedTime != null ? _selectedTime!.format(context):null,
+      "products":widget.products,
+      "remark":_remark.text,
+      "doctorId":widget.doctorID
+    };
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
+      );
+      print('body:${(data)}');
+      print('st code :${response.statusCode}');
+      print('st code :${response.body}');
+      if (response.statusCode == 200) {
+        var responseData = jsonDecode(response.body);
+        Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => false,);
+        Utils.flushBarErrorMessage('${responseData['message']}', context);
+      } else {
+        var responseData = jsonDecode(response.body);
+        Utils.flushBarErrorMessage('${responseData}', context);
+      }
+    } catch (e) {
+      throw Exception('Failed to load data: $e');
+    }
+
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    print('passed products is :${widget.products}');
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,19 +228,25 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    Text('Products'),
+                    Text('Products',style: text50014black,),
                     SizedBox(height: 10),
-              Text('${doctorDetails[0]['products'][0]['product']}',style: text50014black,),
                     ListView.builder(
                       shrinkWrap: true,
-                      itemCount: 5,
+                      itemCount: doctorDetails[0]['products'].length,
                       itemBuilder: (context, index) {
-                        return Text('${doctorDetails[0]['products']}');
-                      },),
+                        return Row(
+                          children: [
+                            Icon(Icons.circle, size: 8.0), // Dot icon
+                            SizedBox(width: 8.0), // Spacing between icon and text
+                            Text('${doctorDetails[0]['products'][index]['product']}'),
+                          ],
+                        );
+                      },
+                    ),
                     SizedBox(height: 20),
                     TextField(
                       onChanged: (value) {
-                        _remarks = value;
+                        _remark.text = value;
                       },
                       maxLines: 3,
                       maxLength: 362,
@@ -234,6 +284,7 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
                           ),
                           ElevatedButton(
                               onPressed: () {
+                                markasvisited();
                                 // if (_myformKey.currentState!.validate()) {
                                 // Map data = {
                                 //   "staff_id": Utils.empId,

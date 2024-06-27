@@ -55,6 +55,20 @@ class AppUrl{
 
   static var list_headqrts = '$baseUrl/rep/get_headquarters';
 
+  static var list_products = '$baseUrl/rep/get_product';
 
+  static var generate_tp = '$baseUrl/rep/travel_plan';
+
+  static var list_tp = '$baseUrl/rep/get_travelPlan';
+
+  static var managers_list = '$baseUrl/manager/list_manager';
+
+  static var delete_employee = '$baseUrl/rep/delete_rep';
+
+  static var getEvents = '$baseUrl/rep/notifications';
+
+  static var accept_reject_exp_mngr = '$baseUrl/manager/change_reportStatus';
+
+  static var mark_as_visited = '$baseUrl/rep/markAsVisited';
 
 }

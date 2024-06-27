@@ -31,42 +31,27 @@ class _AddDoctorState extends State<AddDoctor> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _weddingDateController = TextEditingController();
 
+  late Future<ProductResponse> _futureProducts;
+  List<ProductData> _selectedProducts = [];
+  String _selectedProductsText = '';
 
 
-  // Dropdown data and selected values
-  List<Product> products = [
-    Product('Product 1'),
-    Product('Product 2'),
-    Product('Product 3'),
-    Product('Product 4'),
-    Product('Product 5'),
-    Product('Product 6'),
-    Product('Product 7'),
-    Product('Product 8'),
-    Product('Product 9'),
-    Product('Product 10'),
-    // Add more products as needed
-  ];
+  // List<Chemist> chemists = [];
+  // String selectedProductsText = '';
+  // List<Chemist> selectedChemist = [];
+  // String selectedChemistsText = '';
 
-  List<Chemist> chemists = [
-    Chemist('Chemist 1'),
-    Chemist('Chemist 2'),
-    Chemist('Chemist 3'),
-    Chemist('Chemist 4'),
-    Chemist('Chemist 5'),
-    Chemist('Chemist 6'),
-    Chemist('Chemist 7'),
-    Chemist('Chemist 8'),
-    Chemist('Chemist 9'),
-    Chemist('Chemist 10'),
-    // Add more products as needed
-  ];
+  TextEditingController _textChemistController = TextEditingController();
+  List<Chemist> _selectedChemists = [];
+  String _selectedChemistsText = '';
 
-  List<Product> selectedProducts = [];
-  String selectedProductsText = '';
-  List<Chemist> selectedChemist = [];
-  String selectedChemistsText = '';
-
+  @override
+  void initState() {
+    // TODO: implement initState
+    _futureProducts = _fetchProducts();
+    fetchChemists();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -82,36 +67,40 @@ class _AddDoctorState extends State<AddDoctor> {
     super.dispose();
   }
 
-  Future<dynamic> fetchchemists() async {
+  // Future<dynamic> fetchchemists() async {
+  //
+  //   SharedPreferences preferences = await SharedPreferences.getInstance();
+  //   String? uniqueID = preferences.getString('uniqueID');
+  //
+  //   String url = AppUrl.get_chemists;
+  //
+  //   Map<String, dynamic> data = {
+  //     "uniqueId":uniqueID
+  //   };
+  //
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(url),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: jsonEncode(data),
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       var responseData = jsonDecode(response.body);
+  //       return responseData;
+  //     } else {
+  //       var responseData = jsonDecode(response.body);
+  //       Utils.flushBarErrorMessage('${responseData['message']}', context);
+  //       throw Exception('Failed to load data (status code: ${response.statusCode})');
+  //     }
+  //   } catch (e) {
+  //     Utils.flushBarErrorMessage('${e.toString()}', context);
+  //     throw Exception('Failed to load data: $e');
+  //   }
+  // }
 
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? uniqueID = preferences.getString('uniqueID');
-
-    String url = AppUrl.add_doctor_rep;
-    Map<String, dynamic> data = {
-      "uniqueId":"Rep1234"
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(data),
-      );
-      if (response.statusCode == 200) {
-        var responseData = jsonDecode(response.body);
-        return responseData;
-      } else {
-        var responseData = jsonDecode(response.body);
-        throw Exception('Failed to load data (status code: ${response.statusCode})');
-      }
-    } catch (e) {
-      Utils.flushBarErrorMessage('${e.toString()}', context);
-      throw Exception('Failed to load data: $e');
-    }
-  }
 
   Future<dynamic> adddoctors() async {
     print('add doc called...');
@@ -119,6 +108,35 @@ class _AddDoctorState extends State<AddDoctor> {
     String? uniqueID = preferences.getString('uniqueID');
 
     String url = AppUrl.add_doctor_rep;
+
+
+
+    // Collect addresses
+    List<Map<String, String>> addresses = fields.map((field) {
+      return {
+        "address": field.placeController.text,
+        "latitude": field.latController.text,
+        "longitude": field.lonController.text,
+      };
+    }).toList();
+
+    // Format selected products
+    List<Map<String, dynamic>> formattedProducts = _selectedProducts.map((product) {
+      return {
+        "id": product.id,
+        "product": product.productName.first.name,
+      };
+    }).toList();
+
+    // Format selected chemists
+    List<Map<String, dynamic>> formattedChemists = _selectedChemists.map((chemist) {
+      return {
+        "id": chemist.id,
+        "buildingName": chemist.buildingName,
+        // Add other necessary fields here
+      };
+    }).toList();
+
     Map<String, dynamic> data = {
       "name": _nameController.text,
       "qualification": _qualificationController.text,
@@ -128,10 +146,12 @@ class _AddDoctorState extends State<AddDoctor> {
       "visits": int.parse(_visitsController.text),
       "dob": _dobController.text,
       "wedding_date": _weddingDateController.text,
-      "products": products,
-      "chemist": chemists,
-      "created_UniqueId":uniqueID
+      "products": formattedProducts,
+      "chemist": formattedChemists,
+      "created_UniqueId":uniqueID,
+      'address':addresses
     };
+    print('data is :$data');
 
     try {
       print('in try');
@@ -145,6 +165,7 @@ class _AddDoctorState extends State<AddDoctor> {
       print('st code :${response.statusCode}');
       print('${jsonEncode(data)}');
       print('${response.body}');
+      print('body:$data');
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
         Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => false,);
@@ -161,6 +182,59 @@ class _AddDoctorState extends State<AddDoctor> {
     }
   }
 
+  Future<ProductResponse> _fetchProducts() async {
+    String url = AppUrl.list_products;
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return ProductResponse.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load data (status code: ${response.statusCode})');
+      }
+    } catch (e) {
+      print('Error fetching products: $e');
+      throw Exception('Failed to load data: $e');
+    }
+  }
+
+  Future<List<Chemist>> fetchChemists() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = await preferences.getString('uniqueID');
+    print('called fetch chemist');
+    String url = AppUrl.get_chemists; // Replace with your actual API URL
+
+    // // Example headers and body parameters
+    // Map<String, String> headers = {
+    //   'Content-Type': 'application/json',
+    //   // Add other headers if needed
+    // };
+    //
+    // Map<String, dynamic> body = {
+    //   // Add any necessary body parameters here
+    //   "uniqueId":uniqueID
+    // };
+
+    final response = await http.get(
+      Uri.parse(url),
+      // headers: headers,
+      // body: jsonEncode(body),
+    );
+
+    print('${response.statusCode}');
+    print('resp:${jsonDecode(response.body)}');
+
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      var chemistsJson = data['data'] as List;
+      List<Chemist> chemists = chemistsJson.map((chemist) => Chemist.fromJson(chemist)).toList();
+      return chemists;
+    } else {
+      throw Exception('Failed to load chemists');
+    }
+  }
+
+
+
   // Future<List<HeadQuart>> fetchHeadQuarts() async {
   //   final response = await http.get(Uri.parse(AppUrl.abiip));
   //
@@ -171,6 +245,7 @@ class _AddDoctorState extends State<AddDoctor> {
   //     throw Exception('Failed to load headquarters');
   //   }
   // }
+
   //address widgets
   final List<FieldEntry> fields = [FieldEntry()];
 
@@ -428,19 +503,30 @@ class _AddDoctorState extends State<AddDoctor> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Visit Type',style: text50012black,),
+                      Text('Number of visits',style: text50012black,),
                       SizedBox(height: 10,),
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.textfiedlColor,
                           borderRadius: BorderRadius.circular(6)
                         ),
-                        child: CustomDropdown(
-                          options: ['Core','Super Core','Important'],
-                          onChanged: (value) {
-                            _visitsController.text = value.toString();
+                        child:  TextFormField(
+                          controller: _visitsController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.only(left: 10),
+                              // labelText: 'Specialization',
+                              hintText: 'No of visits',
+                              hintStyle: text50010tcolor2,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a specialization';
+                            }
+                            return null;
                           },
-                        )
+                        ),
                       ),
                     ],
                   ),
@@ -485,9 +571,9 @@ class _AddDoctorState extends State<AddDoctor> {
                                 readOnly: true,
                                 onTap: () async {
                                   DateTime currentDate = DateTime.now();
-                                  DateTime firstDate = DateTime(currentDate.year, currentDate.month - 1, 1);
+                                  DateTime firstDate = DateTime(1900);
                                   DateTime initialDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day - 1);
-                                  DateTime lastDate = DateTime(currentDate.year, currentDate.month + 2, 0); // Last day of the next month
+                                  DateTime lastDate = DateTime(2500); // Last day of the next month
 
                                   DateTime? pickedDate = await showDatePicker(
                                     context: context,
@@ -566,9 +652,9 @@ class _AddDoctorState extends State<AddDoctor> {
                                 readOnly: true,
                                 onTap: () async {
                                   DateTime currentDate = DateTime.now();
-                                  DateTime firstDate = DateTime(currentDate.year, currentDate.month - 1, 1);
+                                  DateTime firstDate = DateTime(1500);
                                   DateTime initialDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day - 1);
-                                  DateTime lastDate = DateTime(currentDate.year, currentDate.month + 2, 0); // Last day of the next month
+                                  DateTime lastDate = DateTime(2500); // Last day of the next month
 
                                   DateTime? pickedDate = await showDatePicker(
                                     context: context,
@@ -698,88 +784,227 @@ class _AddDoctorState extends State<AddDoctor> {
     );
   }
 
+  void _showProductSelectionDialog(BuildContext context) async {
+    ProductResponse productResponse = await _futureProducts;
+
+    List<ProductData> result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, setState) {
+            return AlertDialog(
+              title: Text('Select Products'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: productResponse.data.map((product) {
+                    final isSelected = _selectedProducts.contains(product);
+                    return ListTile(
+                      title: Text(product.productName.first.name),
+                      leading: isSelected
+                          ? Icon(Icons.check_circle, color: Colors.green)
+                          : Icon(Icons.circle_outlined, color: Colors.grey),
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedProducts.remove(product);
+                          } else {
+                            _selectedProducts.add(product);
+                          }
+                          _updateSelectedProductsText();
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(null);
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(_selectedProducts);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedProducts = result;
+        _updateSelectedProductsText();
+      });
+    }
+  }
+
+  void _updateSelectedProductsText() {
+    // This function is kept empty as we are not using the text directly.
+  }
+
   @override
   Widget productwidget1(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.textfiedlColor,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: TextFormField(
-            readOnly: true,
-            onTap: () async {
-              List<Product>? result = await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return ProductSelectionDialog(
-                    products: products,
-                    initiallySelectedProducts: selectedProducts,
-                  );
-                },
-              );
-
-              if (result != null) {
-                setState(() {
-                  selectedProducts = result;
-                  selectedProductsText = selectedProducts.map((p) => p.name).join(', ');
-                });
-              }
-            },
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.only(left: 10),
-              border: InputBorder.none,
-              // labelText: 'Products',
-              hintStyle: text50010tcolor2,
-              hintText: 'select products',
-              suffixIcon: Icon(Icons.arrow_drop_down),
+        InkWell(
+          onTap: () {
+            _showProductSelectionDialog(context);
+          },
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.textfiedlColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Select Products',
+                  hintStyle: text50010tcolor2,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                ),
+                controller: TextEditingController(text: _selectedProductsText),
+              ),
             ),
-            controller: TextEditingController(text: selectedProductsText),
           ),
+        ),
+        SizedBox(height: 16),
+        Wrap(
+          spacing: 8.0,
+          children: _selectedProducts.map((product) {
+            return Chip(
+              label: Text(product.productName.first.name),
+              onDeleted: () {
+                setState(() {
+                  _selectedProducts.remove(product);
+                  _updateSelectedProductsText();
+                });
+              },
+            );
+          }).toList(),
         ),
       ],
     );
   }
 
+  void _showChemistSelectionDialog(BuildContext context) async {
+    List<Chemist> chemistResponse = await fetchChemists();
+
+    List<Chemist> result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, setState) {
+            return AlertDialog(
+              title: Text('Select Chemists'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: chemistResponse.map((chemist) {
+                    final isSelected = _selectedChemists.contains(chemist);
+                    return ListTile(
+                      title: Text(chemist.buildingName),
+                      leading: isSelected
+                          ? Icon(Icons.check_circle, color: Colors.green)
+                          : Icon(Icons.circle_outlined, color: Colors.grey),
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedChemists.remove(chemist);
+                          } else {
+                            _selectedChemists.add(chemist);
+                          }
+                          _updateSelectedChemistsText();
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(null);
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(_selectedChemists);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedChemists = result;
+        _updateSelectedChemistsText();
+      });
+    }
+  }
+
+  void _updateSelectedChemistsText() {
+    setState(() {
+      _selectedChemistsText = _selectedChemists.map((c) => c.buildingName).join(', ');
+      _textChemistController.text = _selectedChemistsText;
+    });
+  }
+
+
   @override
   Widget chemistwidget1(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.textfiedlColor,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: TextFormField(
-            readOnly: true,
-            onTap: () async {
-              List<Chemist>? result = await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return ChemistSelectionDialog(
-                    chemists: chemists,
-                    initiallySelectedChemists: selectedChemist,
-                  );
-                },
-              );
-
-              if (result != null) {
-                setState(() {
-                  selectedChemist = result;
-                  selectedChemistsText = selectedChemist.map((p) => p.name).join(', ');
-                });
-              }
-            },
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              // labelText: 'Chemists',
-              hintText: 'select chemists',
-              hintStyle: text50010tcolor2,
-              suffixIcon: Icon(Icons.arrow_drop_down),
+        InkWell(
+          onTap: () {
+            _showChemistSelectionDialog(context);
+          },
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.textfiedlColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Select Chemists',
+                  hintStyle: text50010tcolor2,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                ),
+                controller: _textChemistController,
+              ),
             ),
-            controller: TextEditingController(text: selectedProductsText),
           ),
+        ),
+        SizedBox(height: 16),
+        Wrap(
+          spacing: 8.0,
+          children: _selectedChemists.map((chemist) {
+            return Chip(
+              label: Text(chemist.buildingName),
+              onDeleted: () {
+                setState(() {
+                  _selectedChemists.remove(chemist);
+                  _updateSelectedChemistsText();
+                });
+              },
+            );
+          }).toList(),
         ),
       ],
     );
@@ -900,149 +1125,111 @@ class _AddDoctorState extends State<AddDoctor> {
   }
 }
 
-class Product {
-  final String name;
-  Product(this.name);
+
+
+
+class ProductResponse {
+  bool error;
+  bool success;
+  String message;
+  List<ProductData> data;
+
+  ProductResponse({
+    required this.error,
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory ProductResponse.fromJson(Map<String, dynamic> json) {
+    var dataList = json['data'] as List;
+    List<ProductData> products =
+    dataList.map((data) => ProductData.fromJson(data)).toList();
+
+    return ProductResponse(
+      error: json['error'],
+      success: json['success'],
+      message: json['message'],
+      data: products,
+    );
+  }
 }
+
+class ProductData {
+  int id;
+  String createdBy;
+  List<ProductName> productName;
+  int quantity;
+  String status;
+
+  ProductData({
+    required this.id,
+    required this.createdBy,
+    required this.productName,
+    required this.quantity,
+    required this.status,
+  });
+
+  factory ProductData.fromJson(Map<String, dynamic> json) {
+    var productNameList = json['product_name'] as List;
+    List<ProductName> productNames =
+    productNameList.map((name) => ProductName.fromJson(name)).toList();
+
+    return ProductData(
+      id: json['id'],
+      createdBy: json['created_by'],
+      productName: productNames,
+      quantity: json['quantity'],
+      status: json['status'],
+    );
+  }
+}
+
+class ProductName {
+  String name;
+
+  ProductName({required this.name});
+
+  factory ProductName.fromJson(Map<String, dynamic> json) {
+    return ProductName(
+      name: json['name'],
+    );
+  }
+}
+
+
 class Chemist {
-  final String name;
-  Chemist(this.name);
-}
+  final int id;
+  final String buildingName;
+  final String mobile;
+  final String email;
+  final String licenseNumber;
+  final String address;
+  final String dateOfBirth;
+  final String status;
 
-
-
-class ProductSelectionDialog extends StatefulWidget {
-  final List<Product> products;
-  final List<Product> initiallySelectedProducts;
-
-  const ProductSelectionDialog({
-    required this.products,
-    required this.initiallySelectedProducts,
+  Chemist({
+    required this.id,
+    required this.buildingName,
+    required this.mobile,
+    required this.email,
+    required this.licenseNumber,
+    required this.address,
+    required this.dateOfBirth,
+    required this.status,
   });
 
-  @override
-  _ProductSelectionDialogState createState() => _ProductSelectionDialogState();
-}
-
-class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
-  late List<Product> selectedProducts;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedProducts = List.from(widget.initiallySelectedProducts);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Select Products'),
-      content: Container(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: widget.products.length,
-          itemBuilder: (context, index) {
-            Product product = widget.products[index];
-            bool isSelected = selectedProducts.contains(product);
-            return ListTile(
-              title: Text(product.name),
-              trailing: isSelected ? Icon(Icons.check, color: Colors.green) : null,
-              onTap: () {
-                setState(() {
-                  if (isSelected) {
-                    selectedProducts.remove(product);
-                  } else {
-                    selectedProducts.add(product);
-                  }
-                });
-              },
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(selectedProducts);
-          },
-          child: Text('OK'),
-        ),
-      ],
+  factory Chemist.fromJson(Map<String, dynamic> json) {
+    return Chemist(
+      id: json['id'],
+      buildingName: json['building_name'],
+      mobile: json['mobile'],
+      email: json['email'],
+      licenseNumber: json['license_number'],
+      address: json['address'],
+      dateOfBirth: json['date_of_birth'],
+      status: json['status'],
     );
   }
 }
 
-class ChemistSelectionDialog extends StatefulWidget {
-  final List<Chemist> chemists;
-  final List<Chemist> initiallySelectedChemists;
-
-  const ChemistSelectionDialog({
-    required this.chemists,
-    required this.initiallySelectedChemists,
-  });
-
-  @override
-  _ChemistSelectionDialogState createState() => _ChemistSelectionDialogState();
-}
-
-class _ChemistSelectionDialogState extends State<ChemistSelectionDialog> {
-  late List<Chemist> selectedChemists;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedChemists = List.from(widget.initiallySelectedChemists);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Select Chemists'),
-      content: Container(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: widget.chemists.length,
-          itemBuilder: (context, index) {
-            Chemist chemist = widget.chemists[index];
-            bool isSelected = selectedChemists.contains(chemist);
-            return ListTile(
-              title: Text(chemist.name),
-              trailing: isSelected ? Icon(Icons.check, color: Colors.green) : null,
-              onTap: () {
-                setState(() {
-                  if (isSelected) {
-                    selectedChemists.remove(chemist);
-                  } else {
-                    selectedChemists.add(chemist);
-                  }
-                });
-              },
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(selectedChemists);
-          },
-          child: Text('OK'),
-        ),
-      ],
-    );
-  }
-}
