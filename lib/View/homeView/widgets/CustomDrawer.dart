@@ -28,14 +28,14 @@ class CustomDrawer extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 10,),
-                    Text('RXROUTE',style: TextStyle(color: AppColors.whiteColor,fontWeight: FontWeight.w600,fontSize: 18),),
+                    Text('RXROUTE',style: text60018,),
                     SizedBox(height: 10,),
                     CircleAvatar(
                       radius: 40,
                       child: Text('${Utils.userName?[0].toUpperCase()}'),
                     ),
                     SizedBox(height: 10,),
-                    Text('${Utils.UserType == 'rep' ? 'REPORTER' : 'MANAGER'}',style: text60014,)
+                    Text('${Utils.UserType == 'rep' ? 'REPRESENTATIVE' : 'MANAGER'}',style: text60014,)
                   ],
                 ),
                            ),
@@ -52,11 +52,7 @@ class CustomDrawer extends StatelessWidget {
                     child: Image.asset('assets/icons/settings2.png'),
                   ),
                   const SizedBox(width: 20,),
-                  const Text('Settings',style: TextStyle(
-                      color: AppColors.whiteColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14
-                  ),),
+                  const Text('Settings',style: text60012),
                 ],
               ),
             ),
@@ -74,11 +70,7 @@ class CustomDrawer extends StatelessWidget {
                       child: Image.asset('assets/icons/termsandc.png'),
                     ),
                     const SizedBox(width: 20,),
-                    const Text('Terms & Conditions',style: TextStyle(
-                        color: AppColors.whiteColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14
-                    ),),
+                    const Text('Terms & Conditions',style: text60012,),
                   ],
                 ),
               ),
@@ -97,11 +89,7 @@ class CustomDrawer extends StatelessWidget {
                       child: Image.asset('assets/icons/help.png'),
                     ),
                     const SizedBox(width: 20,),
-                    const Text('Help Center',style: TextStyle(
-                        color: AppColors.whiteColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14
-                    ),),
+                    const Text('Help Center',style: text60012),
                   ],
                 ),
               ),
@@ -120,11 +108,7 @@ class CustomDrawer extends StatelessWidget {
                       child: Image.asset('assets/icons/exit.png'),
                     ),
                     const SizedBox(width: 20,),
-                    const Text('Logout',style: TextStyle(
-                        color: AppColors.whiteColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14
-                    ),),
+                    const Text('Logout',style:text60012),
                   ],
                 ),
               ),

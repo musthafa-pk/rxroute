@@ -1,11 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
+import 'package:rxroute_test/View/homeView/chemist/edit_chemist.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../Util/Utils.dart';
 import '../../../app_colors.dart';
 import '../../../res/app_url.dart';
+import '../home_view_rep.dart';
 
 class Chemistlist extends StatefulWidget {
   const Chemistlist({super.key});
@@ -38,23 +41,15 @@ class _ChemistlistState extends State<Chemistlist> {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     String? uniqueId = preferences.getString('uniqueID');
     String url = AppUrl.get_chemists;
-    Map<String, dynamic> data = {
-      "rep_UniqueId": uniqueId
-    };
+    // Map<String, dynamic> data = {
+    //   "rep_UniqueId": uniqueId
+    // };
 
     try {
-      if (preferences.getString('uniqueID')!.isEmpty) {
-        Utils.flushBarErrorMessage('Please login again!', context);
-        return;
-      }
-      final response = await http.post(
+      final response = await http.get(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(data),
       );
-      print('$data');
+      // print('$data');
 
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
@@ -115,13 +110,10 @@ class _ChemistlistState extends State<Chemistlist> {
 
   Future<void> deletechemists(int chemistID) async {
     print('delete chemists called....');
-    String url = AppUrl.delete_doctor; // Assuming there's a delete URL
+    String url = AppUrl.delete_chemists; // Assuming there's a delete URL
     Map<String, dynamic> data = {
-      "chemist_id": chemistID
+      "chemist_id": int.parse(chemistID.toString())
     };
-
-    print('chemistID:$chemistID');
-    print(data);
 
     try {
       final response = await http.post(
@@ -131,18 +123,18 @@ class _ChemistlistState extends State<Chemistlist> {
         },
         body: jsonEncode(data),
       );
-
       print(response.statusCode);
       print(response.body);
       if (response.statusCode == 200) {
         print('delete success');
         var responseData = jsonDecode(response.body);
-        Utils.snackBar('${responseData['message']}', context);
-        getchemists(); // Refresh the list after deletion
-        Navigator.pop(context);
+        // Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => false,);
+        Utils.flushBarErrorMessage('${responseData['message']}', context);
+        getchemists();
       } else {
         print('delete failed...');
         var responseData = jsonDecode(response.body);
+        Utils.snackBar('${responseData['message']}', context);
         Utils.flushBarErrorMessage('${responseData['message']}', context);
         throw Exception('Failed to load data (status code: ${response.statusCode})');
       }
@@ -193,12 +185,25 @@ class _ChemistlistState extends State<Chemistlist> {
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         centerTitle: true,
         title: const Text(
           'Chemist List',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
       ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColors.primaryColor,
+          onPressed: (){
+            Navigator.pushNamed(context, RoutesName.add_chemist);
+          },
+          child: Icon(Icons.add,color: AppColors.whiteColor,),
+        ),
       body: RefreshIndicator(
         onRefresh: getchemists,
         child: SafeArea(
@@ -265,6 +270,7 @@ class _ChemistlistState extends State<Chemistlist> {
                             onSelected: (String result) async {
                               if (result == 'edit') {
                                 print('Edit action');
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => Edit_chemist(chemistId: chemist['id'],),));
                               } else if (result == 'delete') {
                                 print('else if of delete');
                                 await _showDeleteConfirmationDialog(context, chemist['building_name'], chemist['id']);
@@ -299,7 +305,7 @@ class _ChemistlistState extends State<Chemistlist> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Delete Doctor"),
+          title: const Text("Delete Chemist"),
           content: Text("Do you want to delete $doctorName from the list?"),
           actions: [
             TextButton(

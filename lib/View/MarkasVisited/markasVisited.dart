@@ -244,6 +244,8 @@ class _MarkAsVisitedState extends State<MarkAsVisited> {
                       },
                     ),
                     SizedBox(height: 20),
+                    Text('Remark',style: text50014black,),
+                    SizedBox(height: 10,),
                     TextField(
                       onChanged: (value) {
                         _remark.text = value;

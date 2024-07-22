@@ -20,6 +20,11 @@ class RoutesName{
 
   static const String markasvisited ='mark as visited';
 
-  static const String addTp ='mark as visited';
+  static const String addTp ='add travel plan';
+
+  static const String requestLeave ='request leave';
+
+  static const String requestExpense ='request expense';
+
 
 }

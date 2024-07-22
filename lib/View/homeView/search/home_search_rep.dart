@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../Util/Utils.dart';
@@ -9,8 +10,7 @@ import '../../../res/app_url.dart';
 import '../Doctor/doctor_details.dart';
 
 class HomesearchRep extends StatefulWidget {
-  String? searchdata;
-  HomesearchRep({this.searchdata,super.key});
+  const HomesearchRep({super.key});
 
   @override
   State<HomesearchRep> createState() => _HomesearchRepState();
@@ -36,6 +36,7 @@ class _HomesearchRepState extends State<HomesearchRep> {
 
   List<dynamic> list_of_doctors = [];
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   bool _isLoading = true; // To handle loading state
   bool _isSearching = false; // To handle searching state
 
@@ -86,8 +87,11 @@ class _HomesearchRepState extends State<HomesearchRep> {
   }
 
   Future<void> searchdoctors() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueId = preferences.getString('uniqueID');
     String url = AppUrl.searchdoctors;
     Map<String, dynamic> data = {
+      "requesterUniqueId":uniqueId,
       "searchData": _searchController.text
     };
     try {
@@ -110,9 +114,6 @@ class _HomesearchRepState extends State<HomesearchRep> {
           getdoctors();
         }
       } else {
-        var responseData = jsonDecode(response.body);
-        Utils.flushBarErrorMessage('${responseData['message']}', context);
-        throw Exception('Failed to load data (status code: ${response.statusCode})');
       }
     } catch (e) {
       throw Exception('Failed to load data: $e');
@@ -130,9 +131,20 @@ class _HomesearchRepState extends State<HomesearchRep> {
   @override
   void initState() {
     super.initState();
-    _searchController.text = widget.searchdata.toString();
     _searchController.addListener(_onSearchChanged);
     getdoctors(); // Fetch the initial list of doctors
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _searchFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
   @override
   Widget build(BuildContext context) {
@@ -169,6 +181,7 @@ class _HomesearchRepState extends State<HomesearchRep> {
                       ),
                       child: TextFormField(
                         controller: _searchController,
+                        focusNode: _searchFocusNode,
                         decoration: const InputDecoration(
                           hintText: 'Search',
                           prefixIcon: Icon(Icons.search),

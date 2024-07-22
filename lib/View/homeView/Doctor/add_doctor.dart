@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
 import 'package:rxroute_test/View/homeView/Employee/add_rep.dart';
+import 'package:rxroute_test/View/homeView/chemist/add_chemist.dart';
 import 'package:rxroute_test/constants/styles.dart';
 import 'package:rxroute_test/widgets/customDropDown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,9 +33,13 @@ class _AddDoctorState extends State<AddDoctor> {
   final TextEditingController _weddingDateController = TextEditingController();
 
   late Future<ProductResponse> _futureProducts;
+  TextEditingController _textProductController = TextEditingController();
   List<ProductData> _selectedProducts = [];
   String _selectedProductsText = '';
+  int? _selectedVisits;
 
+  List<String> _specializations = [];
+  bool isLoading = false;
 
   // List<Chemist> chemists = [];
   // String selectedProductsText = '';
@@ -101,6 +106,35 @@ class _AddDoctorState extends State<AddDoctor> {
   //   }
   // }
 
+  Future<dynamic> fetchSpecializations(String query)async{
+    if(query.isEmpty) return;
+    setState(() {
+      isLoading = true;
+    });
+    String? url = AppUrl.specialisation;
+    try{
+      var response = await http.get(Uri.parse(url));
+      if(response.statusCode == 200){
+        final data = json.decode(response.body)['data'] as List;
+        setState(() {
+          _specializations = data.map((item)=> item['department'] as String).toList();
+        });
+      }else{
+        setState(() {
+          _specializations = [];
+        });
+      }
+    }catch(e){
+      setState(() {
+        _specializations.clear();
+      });
+    }finally{
+      setState(() {
+        isLoading = false;
+      });
+    }
+}
+
 
   Future<dynamic> adddoctors() async {
     print('add doc called...');
@@ -138,7 +172,7 @@ class _AddDoctorState extends State<AddDoctor> {
     }).toList();
 
     Map<String, dynamic> data = {
-      "name": _nameController.text,
+      "name": 'Dr.${_nameController.text}',
       "qualification": _qualificationController.text,
       "gender": _genderController.text,
       "specialization": _specializationController.text,
@@ -174,7 +208,6 @@ class _AddDoctorState extends State<AddDoctor> {
       } else {
         var responseData = jsonDecode(response.body);
         Utils.flushBarErrorMessage('${responseData['message']}', context);
-        throw Exception('Failed to load data (status code: ${response.statusCode})');
       }
     } catch (e) {
       Utils.flushBarErrorMessage('${e.toString()}', context);
@@ -302,10 +335,17 @@ class _AddDoctorState extends State<AddDoctor> {
       fields.removeAt(index);
     });
   }
+  void _setSelectedVisits(int value) {
+    setState(() {
+      _selectedVisits = value;
+      _visitsController.text = value.toString();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.whiteColor,
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -330,7 +370,7 @@ class _AddDoctorState extends State<AddDoctor> {
       ),
       body: SingleChildScrollView(
         child: SafeArea(
-          child: Padding(
+           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Form(
               key: _formKey,
@@ -357,7 +397,7 @@ class _AddDoctorState extends State<AddDoctor> {
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.only(left: 10),
                                     // labelText: 'Name',
-                                  hintText: 'Name',
+                                  hintText: 'Dr.',
                                   hintStyle: text50010tcolor2
                                 ),
                                 validator: (value) {
@@ -460,6 +500,9 @@ class _AddDoctorState extends State<AddDoctor> {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter a mobile number';
                                   }
+                                  if(value.length < 10){
+                                    return 'Phone number must be 10 digits!';
+                                  }
                                   return null;
                                 },
                               ),
@@ -473,63 +516,131 @@ class _AddDoctorState extends State<AddDoctor> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Specialisation',style: text50012black,),
-                      SizedBox(height: 10,),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.textfiedlColor,
-                          borderRadius: BorderRadius.circular(6)
-                        ),
-                        child: TextFormField(
-                          controller: _specializationController,
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 10),
-                              // labelText: 'Specialization',
-                            hintText: 'Specialisation',
-                            hintStyle: text50010tcolor2
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a specialization';
-                            }
-                            return null;
-                          },
-                        ),
+                      Text('Specialisation', style: text50012black),
+                      SizedBox(height: 10),
+                      Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          if (textEditingValue.text.isEmpty) {
+                            return const Iterable<String>.empty();
+                          } else {
+                            fetchSpecializations(textEditingValue.text);
+                            return _specializations.where((option) {
+                              return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                            });
+                          }
+                        },
+                        onSelected: (String selection) {
+                          _specializationController.text = selection;
+                        },
+                        fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color:AppColors.textfiedlColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.only(left: 10),
+                                hintText: 'Specialisation',
+                                hintStyle: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a specialization';
+                                }
+                                return null;
+                              },
+                            ),
+                          );
+                        },
                       ),
+                      if (isLoading)
+                        Padding(
+                          padding: EdgeInsets.only(top: 8.0),
+                          child: CircularProgressIndicator(),
+                        ),
                     ],
                   ),
+                  // Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   children: [
+                  //     Text('Specialisation',style: text50012black,),
+                  //     SizedBox(height: 10,),
+                  //     Container(
+                  //       decoration: BoxDecoration(
+                  //         color: AppColors.textfiedlColor,
+                  //         borderRadius: BorderRadius.circular(6)
+                  //       ),
+                  //       child: TextFormField(
+                  //         controller: _specializationController,
+                  //         decoration: InputDecoration(
+                  //             border: InputBorder.none,
+                  //             contentPadding: EdgeInsets.only(left: 10),
+                  //             // labelText: 'Specialization',
+                  //           hintText: 'Specialisation',
+                  //           hintStyle: text50010tcolor2
+                  //         ),
+                  //         validator: (value) {
+                  //           if (value == null || value.isEmpty) {
+                  //             return 'Please enter a specialization';
+                  //           }
+                  //           return null;
+                  //         },
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   SizedBox(height: 10,),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Number of visits',style: text50012black,),
-                      SizedBox(height: 10,),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.textfiedlColor,
-                          borderRadius: BorderRadius.circular(6)
-                        ),
-                        child:  TextFormField(
-                          controller: _visitsController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 10),
-                              // labelText: 'Specialization',
-                              hintText: 'No of visits',
-                              hintStyle: text50010tcolor2,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a specialization';
-                            }
-                            return null;
-                          },
-                        ),
+                      Text('Number of visits', style: text50012black),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildVisitBox(label: 'Important', value: 4, color: Colors.yellow),
+                          _buildVisitBox(label: 'Core', value: 8, color: Colors.green),
+                          _buildVisitBox(label: 'Super Core', value: 12, color: Colors.red),
+                        ],
                       ),
                     ],
                   ),
+                  SizedBox(height: 10,),
+                  // Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   children: [
+                  //     Text('Number of visits',style: text50012black,),
+                  //     SizedBox(height: 10,),
+                  //     Container(
+                  //       decoration: BoxDecoration(
+                  //         color: AppColors.textfiedlColor,
+                  //         borderRadius: BorderRadius.circular(6)
+                  //       ),
+                  //       child:  TextFormField(
+                  //         controller: _visitsController,
+                  //         keyboardType: TextInputType.number,
+                  //         decoration: InputDecoration(
+                  //             border: InputBorder.none,
+                  //             contentPadding: EdgeInsets.only(left: 10),
+                  //             // labelText: 'Specialization',
+                  //             hintText: 'No of visits',
+                  //             hintStyle: text50010tcolor2,
+                  //         ),
+                  //         validator: (value) {
+                  //           if (value == null || value.isEmpty) {
+                  //             return 'Please enter a specialization';
+                  //           }
+                  //           return null;
+                  //         },
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+
                   SizedBox(height: 10,),
                   Row(
                     children: [
@@ -573,7 +684,7 @@ class _AddDoctorState extends State<AddDoctor> {
                                   DateTime currentDate = DateTime.now();
                                   DateTime firstDate = DateTime(1900);
                                   DateTime initialDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day - 1);
-                                  DateTime lastDate = DateTime(2500); // Last day of the next month
+                                  DateTime lastDate = currentDate; // Last day of the next month
 
                                   DateTime? pickedDate = await showDatePicker(
                                     context: context,
@@ -592,7 +703,7 @@ class _AddDoctorState extends State<AddDoctor> {
                                       );
                                     },
                                   );
-
+        
                                   if (pickedDate != null) {
                                     // Change the format of the date here
                                     String formattedDate = DateFormat('dd-MM-yyyy').format(pickedDate);
@@ -654,8 +765,8 @@ class _AddDoctorState extends State<AddDoctor> {
                                   DateTime currentDate = DateTime.now();
                                   DateTime firstDate = DateTime(1500);
                                   DateTime initialDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day - 1);
-                                  DateTime lastDate = DateTime(2500); // Last day of the next month
-
+                                  DateTime lastDate = currentDate; // Last day of the next month
+        
                                   DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     firstDate: firstDate,
@@ -673,7 +784,7 @@ class _AddDoctorState extends State<AddDoctor> {
                                       );
                                     },
                                   );
-
+        
                                   if (pickedDate != null) {
                                     // Change the format of the date here
                                     String formattedDate = DateFormat('dd-MM-yyyy').format(pickedDate);
@@ -717,13 +828,129 @@ class _AddDoctorState extends State<AddDoctor> {
                   SizedBox(height: 10,),
                   Text('Addresses',style: text50012black,),
                   SizedBox(height: 10,),
-                  Container(
-                    decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(width: 1,color: Colors.grey)
-                          ),
-                    height: 300,
-                      child: addresswidget(context)),
+              Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.add_circle_outline_sharp, color: AppColors.primaryColor),
+                          onPressed: addField,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.remove_circle_outline, color: AppColors.primaryColor),
+                          onPressed: fields.length > 1 ? () => removeField(fields.length - 1) : null,
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: fields.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 3,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColors.textfiedlColor,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: TypeAheadField(
+                                            controller: fields[index].placeController,
+                                            suggestionsCallback: (pattern) async {
+                                              return await fetchSuggestions(pattern);
+                                            },
+                                            itemBuilder: (context, suggestion) {
+                                              return ListTile(
+                                                title: Text(suggestion),
+                                              );
+                                            },
+                                            onSelected: (String value) {
+                                              fields[index].placeController.text = value;
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      IconButton(
+                                        icon: Icon(Icons.location_on, color: AppColors.primaryColor),
+                                        onPressed: () {
+                                          fetchLatLon(fields[index].placeController.text, fields[index].latController, fields[index].lonController);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColors.textfiedlColor,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: TextField(
+                                            controller: fields[index].latController,
+                                            decoration: InputDecoration(
+                                              labelText: 'Latitude',
+                                              labelStyle: text40012bordercolor,
+                                              border: InputBorder.none,
+                                              contentPadding: EdgeInsets.only(left: 10),
+                                            ),
+                                            readOnly: true,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColors.textfiedlColor,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: TextField(
+                                            controller: fields[index].lonController,
+                                            decoration: InputDecoration(
+                                              labelText: 'Longitude',
+                                              labelStyle: text40012bordercolor,
+                                              border: InputBorder.none,
+                                              contentPadding: EdgeInsets.only(left: 10),
+                                            ),
+                                            readOnly: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+        
+              // Container(
+                  //   decoration: BoxDecoration(
+                  //           borderRadius: BorderRadius.circular(6),
+                  //           border: Border.all(width: 1,color: Colors.grey)
+                  //         ),
+                  //     child: addresswidget(context)),
                   // Container(
                   //   height: 300,
                   //     decoration: BoxDecoration(
@@ -740,9 +967,9 @@ class _AddDoctorState extends State<AddDoctor> {
                         child: InkWell(
                           onTap: () {
                             if (_formKey.currentState!.validate()) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Processing Data'))
-                              );
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //     const SnackBar(content: Text('Processing Data'))
+                              // );
                               adddoctors();
                             }
                           },
@@ -846,6 +1073,10 @@ class _AddDoctorState extends State<AddDoctor> {
   }
 
   void _updateSelectedProductsText() {
+    setState(() {
+      _selectedProductsText = _selectedProducts.map((c) => c.productName.first.name).join(', ');
+      _textProductController.text = _selectedProductsText;
+    });
     // This function is kept empty as we are not using the text directly.
   }
 
@@ -871,7 +1102,7 @@ class _AddDoctorState extends State<AddDoctor> {
                   hintStyle: text50010tcolor2,
                   contentPadding: EdgeInsets.symmetric(horizontal: 16),
                 ),
-                controller: TextEditingController(text: _selectedProductsText),
+                controller: _textProductController,
               ),
             ),
           ),
@@ -907,25 +1138,45 @@ class _AddDoctorState extends State<AddDoctor> {
               title: Text('Select Chemists'),
               content: SingleChildScrollView(
                 child: ListBody(
-                  children: chemistResponse.map((chemist) {
-                    final isSelected = _selectedChemists.contains(chemist);
-                    return ListTile(
-                      title: Text(chemist.buildingName),
-                      leading: isSelected
-                          ? Icon(Icons.check_circle, color: Colors.green)
-                          : Icon(Icons.circle_outlined, color: Colors.grey),
-                      onTap: () {
-                        setState(() {
-                          if (isSelected) {
-                            _selectedChemists.remove(chemist);
-                          } else {
-                            _selectedChemists.add(chemist);
-                          }
-                          _updateSelectedChemistsText();
-                        });
+                  children: [
+                    ...chemistResponse.map((chemist) {
+                      final isSelected = _selectedChemists.contains(chemist);
+                      return ListTile(
+                        title: Text(chemist.buildingName),
+                        leading: isSelected
+                            ? Icon(Icons.check_circle, color: Colors.green)
+                            : Icon(Icons.circle_outlined, color: Colors.grey),
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedChemists.remove(chemist);
+                            } else {
+                              _selectedChemists.add(chemist);
+                            }
+                            _updateSelectedChemistsText();
+                          });
+                        },
+                      );
+                    }).toList(),
+                    ListTile(
+                      title: Text('Add New Chemist'),
+                      leading: Icon(Icons.add, color: Colors.blue),
+                      onTap: () async {
+                        Chemist newChemist = await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AddChemist(),
+                          ),
+                        );
+                        if (newChemist != null) {
+                          setState(() {
+                            chemistResponse.add(newChemist);
+                            _selectedChemists.add(newChemist);
+                            _updateSelectedChemistsText();
+                          });
+                        }
                       },
-                    );
-                  }).toList(),
+                    ),
+                  ],
                 ),
               ),
               actions: [
@@ -1123,6 +1374,33 @@ class _AddDoctorState extends State<AddDoctor> {
       ),
     );
   }
+
+  Widget _buildVisitBox({required String label, required int value, required Color color}) {
+    return GestureDetector(
+      onTap: () => _setSelectedVisits(value),
+      child: Container(
+        height: 50,
+        width: MediaQuery.of(context).size.width/3.5,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: _selectedVisits == value ? Colors.brown : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 
@@ -1180,7 +1458,7 @@ class ProductData {
       createdBy: json['created_by'],
       productName: productNames,
       quantity: json['quantity'],
-      status: json['status'],
+      status: json['status'] == "Inctive" ? "Inactive" : json['status'],
     );
   }
 }
@@ -1192,10 +1470,11 @@ class ProductName {
 
   factory ProductName.fromJson(Map<String, dynamic> json) {
     return ProductName(
-      name: json['name'],
+      name: json['name'] is String ? json['name'] : json['name'].toString(),
     );
   }
 }
+
 
 
 class Chemist {
@@ -1232,4 +1511,6 @@ class Chemist {
     );
   }
 }
+
+
 

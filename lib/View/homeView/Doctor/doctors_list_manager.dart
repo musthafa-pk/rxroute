@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/View/homeView/Doctor/doctor_details.dart';
+import 'package:rxroute_test/View/homeView/Doctor/edit_doctor.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Util/Utils.dart';
 import '../../../res/app_url.dart';
+import '../home_view_rep.dart';
 
 class DoctorsListManager extends StatefulWidget {
   const DoctorsListManager({super.key});
@@ -192,6 +195,19 @@ class _DoctorsListManagerState extends State<DoctorsListManager> {
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: (){
+          Navigator.pushNamed(context, RoutesName.add_doctor);
+        },
+        child: Icon(Icons.add,color: AppColors.whiteColor,),
       ),
       body: RefreshIndicator(
         onRefresh: getdoctors,
@@ -241,48 +257,64 @@ class _DoctorsListManagerState extends State<DoctorsListManager> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView.builder(
-                          itemCount: list_of_doctors.length,
+                        child: _isLoading
+                            ? Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                          itemCount: list_of_doctors.length + 1, // Add 1 for the blank space
                           itemBuilder: (context, index) {
-                            // return Text('${list_of_doctors[0]['addedBy_']}');
-                            var doctor = list_of_doctors[index];
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                  builder: (context) => DoctorDetails(doctorID: doctor['id']),
-                                ));
-                              },
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: getPastelColor(doctor['doc_name']),
-                                  child: Text("${doctor['doc_name'][0]}"),
-                                ),
-                                title: Text(doctor['doc_name']),
-                                subtitle: Text(doctor['specialization']),
-                                trailing: PopupMenuButton<String>(
-                                  color: AppColors.whiteColor,
-                                  onSelected: (String result) async {
-                                    if (result == 'edit') {
-                                      print('Edit action');
-                                    } else if (result == 'delete') {
-                                      print('else if of delete');
-                                      await _showDeleteConfirmationDialog(context, doctor['doc_name'], doctor['id']);
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                    const PopupMenuItem<String>(
-                                      value: 'edit',
-                                      child: Text('Edit'),
+                            if (index < list_of_doctors.length) {
+                              var doctor = list_of_doctors[index];
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DoctorDetails(doctorID: doctor['id']),
                                     ),
-                                    const PopupMenuItem<String>(
-                                      value: 'delete',
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                  icon: const Icon(Icons.more_vert),
+                                  );
+                                },
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: getPastelColor(doctor['doc_name']),
+                                    child: Text("${doctor['doc_name'][0]}"),
+                                  ),
+                                  title: Text(doctor['doc_name']),
+                                  subtitle: Text(doctor['specialization']),
+                                  trailing: PopupMenuButton<String>(
+                                    color: AppColors.whiteColor,
+                                    onSelected: (String result) async {
+                                      if (result == 'edit') {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EditDoctor(doctorID: doctor['id'].toString()),
+                                          ),
+                                        );
+                                      } else if (result == 'delete') {
+                                        await _showDeleteConfirmationDialog(context, doctor['doc_name'], doctor['id']);
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                      const PopupMenuItem<String>(
+                                        value: 'edit',
+                                        child: Text('Edit'),
+                                      ),
+                                      const PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Text('Delete'),
+                                      ),
+                                    ],
+                                    icon: const Icon(Icons.more_vert),
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            } else {
+                              // Return a blank container as the last item
+                              return Container(
+                                height: 100, // Adjust height as needed
+                                color: Colors.white,
+                              );
+                            }
                           },
                         ),
                       ),

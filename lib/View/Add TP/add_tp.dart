@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../app_colors.dart';
 import 'package:http/http.dart' as http;
 
+import '../homeView/home_view_rep.dart';
+
 class AddTravelPlan extends StatefulWidget {
   const AddTravelPlan({super.key});
 
@@ -134,7 +136,9 @@ class _AddTravelPlanState extends State<AddTravelPlan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.whiteColor,
       appBar: AppBar(
+        backgroundColor: AppColors.whiteColor,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
@@ -151,6 +155,12 @@ class _AddTravelPlanState extends State<AddTravelPlan> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         title: const Text(
           'TP Request',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),

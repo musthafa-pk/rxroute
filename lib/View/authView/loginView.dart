@@ -2,8 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
+import 'package:rxroute_test/View/profile/settings/privacypolicy.dart';
+import 'package:rxroute_test/View/profile/settings/terms_and_conditions.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:rxroute_test/constants/styles.dart';
 
@@ -20,6 +23,42 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+
+  final LocalAuthentication _localAuthentication = LocalAuthentication();
+
+  Future<void> checkBiometric() async {
+    try {
+      bool canCheckBiometrics = await _localAuthentication.canCheckBiometrics;
+      print('Can check biometrics: $canCheckBiometrics');
+    } catch (e) {
+      print('Error checking biometrics: $e');
+    }
+  }
+
+  Future<void> getAvailableBiometrics() async {
+    try {
+      List<BiometricType> availableBiometrics = await _localAuthentication.getAvailableBiometrics();
+      print('Available biometrics: $availableBiometrics');
+    } catch (e) {
+      print('Error getting available biometrics: $e');
+    }
+  }
+
+  Future<void> authenticate() async {
+    try {
+      bool isAuthenticated = await _localAuthentication.authenticate(
+        localizedReason: 'Authenticate to access the app',
+        options: AuthenticationOptions(
+          biometricOnly: true,
+          useErrorDialogs: true,
+          stickyAuth: true,
+        ),
+      );
+      print('Biometric authentication successful: $isAuthenticated');
+    } catch (e) {
+      print('Error during biometric authentication: $e');
+    }
+  }
 
   final _formKey = GlobalKey<FormState>();
   bool _passwordVisible = false;
@@ -63,11 +102,11 @@ class _LoginViewState extends State<LoginView> {
           print('userID:${prefrence.getString('userName')}');
 
           if(prefrence.getString('userType') == 'rep'){
-            Navigator.pushNamed(context, RoutesName.home_rep);
+            Navigator.pushNamedAndRemoveUntil(context, RoutesName.home_rep,(route) => false,);
             Utils.flushBarErrorMessage('${responseData['message']}'+' ${prefrence.getString('userName').toString().toUpperCase()}', context);
             Utils.getuser();
           }else if(prefrence.getString('userType') == 'manager'){
-            Navigator.pushNamed(context, RoutesName.home_manager);
+            Navigator.pushNamedAndRemoveUntil(context, RoutesName.home_manager,(route) => false,);
             Utils.flushBarErrorMessage('${responseData['message']}'+' ${prefrence.getString('userName').toString().toUpperCase()}', context);
             Utils.getuser();
             return responseData;
@@ -75,11 +114,9 @@ class _LoginViewState extends State<LoginView> {
         });
         //sharedpreferences
 
-
       } else {
         var responseData = jsonDecode(response.body);
         Utils.flushBarErrorMessage('${responseData['message']}', context);
-        throw Exception('Failed to load data (status code: ${response.statusCode})');
       }
     } catch (e) {
       Utils.flushBarErrorMessage('${e.toString()}', context);
@@ -99,17 +136,31 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'RXROUTE',
-              style:text60024black
+            SizedBox(height: 50,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/icons/rxlogo.png',
+                  height:35,
+                  width: 35,),
+                const Text(
+                  'RxROUTE',
+                  style:TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 24,
+                    color: AppColors.primaryColor,
+
+                  )
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             Form(
               key: _formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: MediaQuery.of(context).size.width / 1.2,
@@ -172,13 +223,13 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'Forgot password',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
+                  // const Text(
+                  //   'Forgot password',
+                  //   style: TextStyle(
+                  //     decoration: TextDecoration.underline,
+                  //     color: AppColors.primaryColor,
+                  //   ),
+                  // ),
                   const SizedBox(height: 10),
                 ],
               ),
@@ -193,7 +244,7 @@ class _LoginViewState extends State<LoginView> {
                   }
                 },
                 child: Container(
-                  width: MediaQuery.of(context).size.width / 1.3,
+                  width: MediaQuery.of(context).size.width / 1.2,
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(8),
@@ -234,7 +285,7 @@ class _LoginViewState extends State<LoginView> {
                           ..onTap = () {
                             // Handle Terms & Conditions click
                             print('Terms & Conditions clicked');
-                            // Navigator.push(context, MaterialPageRoute(builder: (context) => TermsAndConditionsPage()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => TermsAndConditions()));
                           },
                       ),
                       const TextSpan(
@@ -250,7 +301,7 @@ class _LoginViewState extends State<LoginView> {
                           ..onTap = () {
                             // Handle Privacy Policy click
                             print('Privacy Policy clicked');
-                            // Navigator.push(context, MaterialPageRoute(builder: (context) => PrivacyPolicyPage()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => PrivacyPolicyPage()));
                           },
                       ),
                       const TextSpan(

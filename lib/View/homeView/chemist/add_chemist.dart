@@ -10,6 +10,7 @@ import '../../../Util/Routes/routes_name.dart';
 import '../../../Util/Utils.dart';
 import '../../../app_colors.dart';
 import '../../../res/app_url.dart';
+import '../home_view_rep.dart';
 
 class AddChemist extends StatefulWidget {
   const AddChemist({super.key});
@@ -19,7 +20,6 @@ class AddChemist extends StatefulWidget {
 }
 
 class _AddChemistState extends State<AddChemist> {
-
   final TextEditingController buildingName = TextEditingController();
   final TextEditingController phone = TextEditingController();
   final TextEditingController email = TextEditingController();
@@ -28,47 +28,55 @@ class _AddChemistState extends State<AddChemist> {
   final TextEditingController dob = TextEditingController();
   final TextEditingController wedding_date = TextEditingController();
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   Future<dynamic> addchemist() async {
-    print('add chemi called...');
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? userID = preferences.getString('userID');
-    String? uniqueID = preferences.getString('uniqueID');
-    String url = AppUrl.add_chemist;
-    Map<String, dynamic> data = {
-      "created_by":int.parse(userID.toString()),
-      "building_name":buildingName.text,
-      "mobile":phone.text,
-      "email":email.text,
-      "lisence_no":licencenumber.text,
-      "address":address.text,
-      "date_of_birth":dob.text,
-      // "anniversary_date":"02-05-2024",
-      "uniqueId":uniqueID
-    };
-    try {
-      print(jsonEncode(data));
-      print('try working..');
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(data),
-      );
-      print('bdy:$data');
-      print('stcode:${response.statusCode}');
-      print('rsp:${response.body}');
-      if (response.statusCode == 200) {
-        var responseData = jsonDecode(response.body);
-        Navigator.pushNamedAndRemoveUntil(context, RoutesName.successsplash, (route) => true,);
-        Utils.flushBarErrorMessage('${responseData['message']}', context);
-      } else {
-        var responseData = jsonDecode(response.body);
-        Utils.flushBarErrorMessage('${responseData['message']}', context);
+    if (_formKey.currentState?.validate() ?? false) {
+      print('add chemist called...');
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      String? userID = preferences.getString('userID');
+      String? uniqueID = preferences.getString('uniqueID');
+      String url = AppUrl.add_chemist;
+      Map<String, dynamic> data = {
+        "created_by": int.parse(userID.toString()),
+        "building_name": buildingName.text,
+        "mobile": phone.text,
+        "email": email.text,
+        "lisence_no": licencenumber.text,
+        "address": address.text,
+        "date_of_birth": dob.text,
+        // "anniversary_date":"02-05-2024",
+        "uniqueId": uniqueID
+      };
+      try {
+        print(jsonEncode(data));
+        print('try working..');
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(data),
+        );
+        print('body: $data');
+        print('status code: ${response.statusCode}');
+        print('response: ${response.body}');
+        if (response.statusCode == 200) {
+          var responseData = jsonDecode(response.body);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            RoutesName.successsplash,
+                (route) => true,
+          );
+          Utils.flushBarErrorMessage('${responseData['message']}', context);
+        } else {
+          var responseData = jsonDecode(response.body);
+          Utils.flushBarErrorMessage('${responseData['message']}', context);
+        }
+      } catch (e) {
+        Utils.flushBarErrorMessage('${e.toString()}', context);
+        throw Exception('Failed to load data: $e');
       }
-    } catch (e) {
-      Utils.flushBarErrorMessage('${e.toString()}', context);
-      throw Exception('Failed to load data: $e');
     }
   }
 
@@ -80,15 +88,23 @@ class _AddChemistState extends State<AddChemist> {
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color:AppColors.primaryColor, // Replace with your desired color
+              color: AppColors.primaryColor, // Replace with your desired color
               borderRadius: BorderRadius.circular(6),
             ),
-            child: InkWell(onTap: (){
-              Navigator.pop(context);
-            },
-                child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
+            child: InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: const Icon(Icons.arrow_back, color: Colors.white), // Adjust icon color
+            ),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         centerTitle: true,
         title: const Text(
           'Add Chemist',
@@ -100,35 +116,34 @@ class _AddChemistState extends State<AddChemist> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           InkWell(
-            onTap: (){
+            onTap: () {
               print('pressed..');
-              // add validation
               addchemist();
             },
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(6)
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: Text('Submit',style: text50014,),
+                child: Text('Submit', style: text50014),
               ),
             ),
           ),
           InkWell(
-            onTap: (){
+            onTap: () {
               Navigator.pop(context);
             },
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.whiteColor,
-                border: Border.all(width: 1,color: AppColors.primaryColor),
-                borderRadius: BorderRadius.circular(6)
+                border: Border.all(width: 1, color: AppColors.primaryColor),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: Text('Cancel',style: text50014primary,),
+                child: Text('Cancel', style: text50014primary),
               ),
             ),
           ),
@@ -138,41 +153,50 @@ class _AddChemistState extends State<AddChemist> {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Building Name',style: text50014black,),
-                          SizedBox(height: 10,),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.textfiedlColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Building Name', style: text50014black),
+                            SizedBox(height: 10),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.textfiedlColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                               child: TextFormField(
                                 controller: buildingName,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
-                                    hintStyle: text50010tcolor2,
-                                    hintText: 'Building Name',
-                                    contentPadding: EdgeInsets.only(left: 10)
+                                  hintStyle: text50010tcolor2,
+                                  hintText: 'Building Name',
+                                  contentPadding: EdgeInsets.only(left: 10),
                                 ),
-                              ))
-                        ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Building Name is required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 10,),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Mobile',style: text50014black,),
-                          SizedBox(height: 10,),
-                          Container(
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Mobile', style: text50014black),
+                            SizedBox(height: 10),
+                            Container(
                               decoration: BoxDecoration(
                                 color: AppColors.textfiedlColor,
                                 borderRadius: BorderRadius.circular(8),
@@ -180,23 +204,31 @@ class _AddChemistState extends State<AddChemist> {
                               child: TextFormField(
                                 controller: phone,
                                 decoration: InputDecoration(
-                                    border: InputBorder.none,hintStyle: text50010tcolor2,
-                                    hintText: 'Phone Number',
-                                    contentPadding: EdgeInsets.only(left: 10)
+                                  border: InputBorder.none,
+                                  hintStyle: text50010tcolor2,
+                                  hintText: 'Phone Number',
+                                  contentPadding: EdgeInsets.only(left: 10),
                                 ),
-                              ))
-                        ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Phone Number is required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  ],
-                ),
-                SizedBox(height: 10,),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Email(Optional)',style: text50014black,),
-                    SizedBox(height: 10,),
-                    Container(
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Email (Optional)', style: text50014black),
+                      SizedBox(height: 10),
+                      Container(
                         decoration: BoxDecoration(
                           color: AppColors.textfiedlColor,
                           borderRadius: BorderRadius.circular(8),
@@ -204,16 +236,17 @@ class _AddChemistState extends State<AddChemist> {
                         child: TextFormField(
                           controller: email,
                           decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintStyle: text50010tcolor2,
-                              hintText: 'eg:abc@gmail.com',
-                              contentPadding: EdgeInsets.only(left: 10)
+                            border: InputBorder.none,
+                            hintStyle: text50010tcolor2,
+                            hintText: 'eg: abc@gmail.com',
+                            contentPadding: EdgeInsets.only(left: 10),
                           ),
-                        )),
-                    SizedBox(height: 10,),
-                    Text('License Number',style: text50014black,),
-                    SizedBox(height: 10,),
-                    Container(
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text('License Number', style: text50014black),
+                      SizedBox(height: 10),
+                      Container(
                         decoration: BoxDecoration(
                           color: AppColors.textfiedlColor,
                           borderRadius: BorderRadius.circular(8),
@@ -221,16 +254,23 @@ class _AddChemistState extends State<AddChemist> {
                         child: TextFormField(
                           controller: licencenumber,
                           decoration: InputDecoration(
-                              border: InputBorder.none,
+                            border: InputBorder.none,
                             hintStyle: text50010tcolor2,
-                            hintText: 'eg:123456789',
-                            contentPadding: EdgeInsets.only(left: 10)
+                            hintText: 'eg: 123456789',
+                            contentPadding: EdgeInsets.only(left: 10),
                           ),
-                        )),
-                    SizedBox(height: 10,),
-                    Text('Date of Birth',style: text50014black,),
-                    SizedBox(height: 10,),
-                    Container(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'License Number is required';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text('Date of Birth', style: text50014black),
+                      SizedBox(height: 10),
+                      Container(
                         decoration: BoxDecoration(
                           color: AppColors.textfiedlColor,
                           borderRadius: BorderRadius.circular(8),
@@ -261,9 +301,9 @@ class _AddChemistState extends State<AddChemist> {
                           readOnly: true,
                           onTap: () async {
                             DateTime currentDate = DateTime.now();
-                            DateTime firstDate = DateTime(currentDate.year, currentDate.month - 1, 1);
+                            DateTime firstDate = DateTime(1900);
                             DateTime initialDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day - 1);
-                            DateTime lastDate = DateTime(currentDate.year, currentDate.month + 2, 0); // Last day of the next month
+                            DateTime lastDate = DateTime(2500); // Last day of the next month
 
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
@@ -292,17 +332,17 @@ class _AddChemistState extends State<AddChemist> {
                             }
                           },
                           validator: (value) {
-                            if(value! == null && value.isEmpty){
-                              Utils.flushBarErrorMessage('Select date first', context,);
+                            if (value == null || value.isEmpty) {
+                              return 'Date of Birth is required';
                             }
                             return null;
                           },
-                          // validator: (value) => value!.isEmpty ? 'Select Date' : null,
-                        ),),
-                    SizedBox(height: 10,),
-                    Text('Address',style: text50014black,),
-                    SizedBox(height: 10,),
-                    Container(
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text('Address', style: text50014black),
+                      SizedBox(height: 10),
+                      Container(
                         decoration: BoxDecoration(
                           color: AppColors.textfiedlColor,
                           borderRadius: BorderRadius.circular(8),
@@ -312,17 +352,25 @@ class _AddChemistState extends State<AddChemist> {
                           maxLines: 3,
                           maxLength: 118,
                           decoration: InputDecoration(
-                              border: InputBorder.none,
+                            border: InputBorder.none,
                             counterText: '',
-                              hintStyle: text50010tcolor2,
-                              hintText: 'address',
-                              contentPadding: EdgeInsets.only(left: 10)
+                            hintStyle: text50010tcolor2,
+                            hintText: 'Address',
+                            contentPadding: EdgeInsets.only(left: 10),
                           ),
-                        )),
-                    SizedBox(height: 10,),
-                  ],
-                ),
-              ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Address is required';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

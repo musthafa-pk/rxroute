@@ -4,6 +4,7 @@ import 'package:rxroute_test/View/homeView/Expense/exp_manager/exp_approval_mngr
 import 'package:rxroute_test/View/homeView/Expense/widgets.dart';
 
 import '../../../../app_colors.dart';
+import '../../home_view_rep.dart';
 //accept or reject
 class ExpenseApprovalsManager extends StatefulWidget {
   const ExpenseApprovalsManager({super.key});
@@ -66,6 +67,12 @@ class _ExpenseApprovalsManagerState extends State<ExpenseApprovalsManager> with 
           labelColor: Colors.black,
           indicatorColor: Colors.green,
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(

@@ -3,7 +3,7 @@ class AppUrl{
 
   static const hostedip = '52.66.145.37';
 
-  static const abiip = '192.168.1.10';
+  // static const abiip = '192.168.1.10';
 
   static var baseUrl = 'http://${hostedip}:${port}';
 
@@ -70,5 +70,23 @@ class AppUrl{
   static var accept_reject_exp_mngr = '$baseUrl/manager/change_reportStatus';
 
   static var mark_as_visited = '$baseUrl/rep/markAsVisited';
+
+  static var edit_doctor = '$baseUrl/manager/editDoctor';
+
+  static var search_expense = '$baseUrl/rep/search_expenseTable';
+
+  static var search_leave = '$baseUrl/rep/searchByDate';
+
+  static var singleChemistDetails = '$baseUrl/rep/singleChemistDetail';
+
+  static var edit_chemist = '$baseUrl/rep/edit_chemist';
+
+  static var edit_employee = '$baseUrl/manager/editRep';
+
+  static var search_employee = '$baseUrl/rep/search_Rep';
+
+  static var specialisation =  '$baseUrl/rep/getSpecialization';
+
+  static var getvisitedDates = '$baseUrl/rep/getVisitedDates';
 
 }

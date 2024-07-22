@@ -5,8 +5,11 @@ import 'package:rxroute_test/View/events/widgets/eventCardWidget.dart';
 import 'package:rxroute_test/constants/styles.dart';
 import 'package:rxroute_test/res/app_url.dart';
 
+import '../../Util/Utils.dart';
 import '../../app_colors.dart';
 import 'package:http/http.dart' as http;
+
+import '../homeView/home_view_rep.dart';
 
 class UpcomingEvents extends StatefulWidget {
   String eventType;
@@ -26,7 +29,7 @@ class _UpcomingEventsState extends State<UpcomingEvents> {
     final url = Uri.parse(AppUrl.getEvents);
 
     try {
-      final response = await http.get(url);
+      final response = await http.post(url);
       print('events......statcode :${response.statusCode}');
       print('datasss;${response.body}');
       if (response.statusCode == 200) {
@@ -66,335 +69,368 @@ class _UpcomingEventsState extends State<UpcomingEvents> {
             ),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         centerTitle: true,
         title: Text(
           widget.eventType.toString(),
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
       ),
-      body: SafeArea(
-          child:Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FutureBuilder(
-                  future: getEvents(),
-                  builder: (context,snapshot) {
-                    if(snapshot.connectionState == ConnectionState.waiting){
-                      return Center(child: CircularProgressIndicator(),);
-                    }else if(snapshot.hasError){
-                      return Center(child: Text('Some error occured !'),);
-                    }else if(snapshot.hasData){
-                      return Column(
-                        children: [
-                          Text('Birthday\'s',style: text60017black,),
-                          ListView.builder(
-                            shrinkWrap: true,
-                              itemCount: snapshot.data[0]['BirthdayNotification'].length,
-                              itemBuilder: (context,index) {
-                                var snapdata = snapshot.data[0]['BirthdayNotification'];
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Stack(
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 25.0,
-                                            top: 10,
-                                            bottom: 10,
-                                            right: 10,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Hey !',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.whiteColor,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              Text(
-                                                'Its ${snapdata[index]['doc_name']}\'s Birthday !',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.whiteColor,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const Text(
-                                                'Wish an all the Best',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.whiteColor,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 30),
-                                              Row(
-                                                children: [
-                                                  CircleAvatar(radius: 25,child: Text('${snapdata[index]['doc_name'][0].toString().toUpperCase()}'),),
-                                                  SizedBox(width: 10),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child:SafeArea(
+            child:Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder(
+                    future: getEvents(),
+                    builder: (context,snapshot) {
+                      if(snapshot.connectionState == ConnectionState.waiting){
+                        return Center(child: CircularProgressIndicator(),);
+                      }else if(snapshot.hasError){
+                        return Center(child: Text('Some error occured !'),);
+                      }else if(snapshot.hasData){
+                        return Column(
+                          children: [
+                            Text('Birthday\'s',style: text60017black,),
+                            ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: snapshot.data[0]['BirthdayNotification'].length,
+                                itemBuilder: (context,index) {
+                                  var snapdata = snapshot.data[0]['BirthdayNotification'];
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Stack(
+                                      children: [
+                                        InkWell(
+                                          onTap:(){
+                                            showDialog(context: context, builder: (BuildContext context){
+                                              return Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: Container(
+                                                  height: 250,
+                                                  width: 250,
+                                                  decoration: BoxDecoration(
+                                                      color: AppColors.primaryColor
+                                                  ),
+                                                  child: Column(
                                                     children: [
-                                                      Text(
-                                                        '${snapdata[index]['doc_name']}',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.w500,
-                                                          color: AppColors.whiteColor,
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '${snapdata[index]['doc_qualification']}',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.w500,
-                                                          color: AppColors.whiteColor,
-                                                          fontSize: 9,
-                                                        ),
-                                                      ),
+                                                      Text('aaaaa'),
+                                                      Text('bddbdbb')
                                                     ],
-                                                  )
-                                                ],
+                                                  ),
+                                                ),
+                                              );
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primaryColor,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 25.0,
+                                                top: 10,
+                                                bottom: 10,
+                                                right: 10,
                                               ),
-                                              const SizedBox(height: 10),
-                                              InkWell(
-                                                onTap: ()async{
-
-                                                },
-                                                child: SizedBox(
-                                                  width: 130,
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.primaryColor2,
-                                                      borderRadius: BorderRadius.circular(6),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Hey !',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w500,
+                                                      color: AppColors.whiteColor,
+                                                      fontSize: 12,
                                                     ),
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(8.0),
-                                                      child: Row(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                  ),
+                                                  Text(
+                                                    'Its ${snapdata[index]['doc_name']}\'s Birthday !',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w500,
+                                                      color: AppColors.whiteColor,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  const Text(
+                                                    'Wish an all the Best',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w500,
+                                                      color: AppColors.whiteColor,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 30),
+                                                  Row(
+                                                    children: [
+                                                      CircleAvatar(radius: 25,child: Text('${snapdata[index]['doc_name'][0].toString().toUpperCase()}'),),
+                                                      SizedBox(width: 10),
+                                                      Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
                                                           Text(
-                                                            'Notify me',
+                                                            '${snapdata[index]['doc_name']}',
                                                             style: TextStyle(
                                                               fontWeight: FontWeight.w500,
                                                               color: AppColors.whiteColor,
                                                               fontSize: 12,
                                                             ),
                                                           ),
-                                                          SizedBox(width: 10),
-                                                          Icon(
-                                                            Icons.notifications_active,
-                                                            color: AppColors.whiteColor,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        right: 0,
-                                        top: 0,
-                                        child: Container(
-                                          height: 70,
-                                          width: 100,
-                                          decoration: const BoxDecoration(
-                                            color: AppColors.primaryColor2,
-                                            borderRadius: BorderRadius.only(
-                                              bottomLeft: Radius.circular(21),
-                                              topRight: Radius.circular(6),
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(15.0),
-                                            child: Image.asset('assets/icons/cake.png'),
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                          ),
-                        ],
-                      );
-                    }
-                    return Center(child: Text('Some error occured !,Please restart your application.'),);
-                  }
-              ),
-              FutureBuilder(
-                  future: getEvents(),
-                  builder: (context,snapshot) {
-                    if(snapshot.connectionState == ConnectionState.waiting){
-                      return Center(child: CircularProgressIndicator(),);
-                    }else if(snapshot.hasError){
-                      return Center(child: Text('Some error occured !'),);
-                    }else if(snapshot.hasData){
-                      return Column(
-                        children: [
-                          Text('Anniversary\'s',style: text60017black,),
-                          ListView.builder(
-                            shrinkWrap: true,
-                              itemCount: snapshot.data[0]['AnniversaryNotification'].length,
-                              itemBuilder: (context,index) {
-                                var snapdata = snapshot.data[0]['AnniversaryNotification'];
-                                print('snapdata:$snapdata');
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Stack(
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 25.0,
-                                            top: 10,
-                                            bottom: 10,
-                                            right: 10,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Hey !',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.whiteColor,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              Text(
-                                                'Its ${snapdata[index]['doc_name']}\'s Wedding Anniversary !',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.whiteColor,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const Text(
-                                                'Wish an all the Best',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.whiteColor,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 30),
-                                              Row(
-                                                children: [
-                                                  CircleAvatar(radius: 25,child: Text('${snapdata[index]['doc_name'][0].toString().toUpperCase()}'),),
-                                                  SizedBox(width: 10),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        '${snapdata[index]['doc_name']}',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.w500,
-                                                          color: AppColors.whiteColor,
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '${snapdata[index]['doc_qualification']}',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.w500,
-                                                          color: AppColors.whiteColor,
-                                                          fontSize: 9,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                              const SizedBox(height: 10),
-                                              InkWell(
-                                                onTap: ()async{
-
-                                                },
-                                                child: SizedBox(
-                                                  width: 130,
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.primaryColor2,
-                                                      borderRadius: BorderRadius.circular(6),
-                                                    ),
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(8.0),
-                                                      child: Row(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
                                                           Text(
-                                                            'Notify me',
+                                                            '${snapdata[index]['doc_qualification']}',
                                                             style: TextStyle(
                                                               fontWeight: FontWeight.w500,
                                                               color: AppColors.whiteColor,
-                                                              fontSize: 12,
+                                                              fontSize: 9,
                                                             ),
                                                           ),
-                                                          SizedBox(width: 10),
-                                                          Icon(
-                                                            Icons.notifications_active,
-                                                            color: AppColors.whiteColor,
-                                                          ),
                                                         ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  InkWell(
+                                                    onTap: ()async{
+
+                                                    },
+                                                    child: SizedBox(
+                                                      width: 130,
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                          color: AppColors.primaryColor2,
+                                                          borderRadius: BorderRadius.circular(6),
+                                                        ),
+                                                        child: const Padding(
+                                                          padding: EdgeInsets.all(8.0),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              Text(
+                                                                'Notify me',
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.w500,
+                                                                  color: AppColors.whiteColor,
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
+                                                              SizedBox(width: 10),
+                                                              Icon(
+                                                                Icons.notifications_active,
+                                                                color: AppColors.whiteColor,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          right: 0,
+                                          top: 0,
+                                          child: Container(
+                                            height: 70,
+                                            width: 100,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.primaryColor2,
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft: Radius.circular(21),
+                                                topRight: Radius.circular(6),
+                                              ),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(15.0),
+                                              child: Image.asset('assets/icons/cake.png'),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }
+                            ),
+                          ],
+                        );
+                      }
+                      return Center(child: Text('Some error occured !,Please restart your application.'),);
+                    }
+                ),
+                FutureBuilder(
+                    future: getEvents(),
+                    builder: (context,snapshot) {
+                      if(snapshot.connectionState == ConnectionState.waiting){
+                        return Center(child: CircularProgressIndicator(),);
+                      }else if(snapshot.hasError){
+                        return Center(child: Text('Some error occured !'),);
+                      }else if(snapshot.hasData){
+                        return Column(
+                          children: [
+                            Text('Anniversary\'s',style: text60017black,),
+                            ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: snapshot.data[0]['AnniversaryNotification'].length,
+                                itemBuilder: (context,index) {
+                                  var snapdata = snapshot.data[0]['AnniversaryNotification'];
+                                  print('snapdata:$snapdata');
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryColor,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 25.0,
+                                              top: 10,
+                                              bottom: 10,
+                                              right: 10,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Hey !',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.whiteColor,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Its ${snapdata[index]['doc_name']}\'s Wedding Anniversary !',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.whiteColor,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const Text(
+                                                  'Wish an all the Best',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.whiteColor,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 30),
+                                                Row(
+                                                  children: [
+                                                    CircleAvatar(radius: 25,child: Text('${snapdata[index]['doc_name'][0].toString().toUpperCase()}'),),
+                                                    SizedBox(width: 10),
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          '${snapdata[index]['doc_name']}',
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.w500,
+                                                            color: AppColors.whiteColor,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          '${snapdata[index]['doc_qualification']}',
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.w500,
+                                                            color: AppColors.whiteColor,
+                                                            fontSize: 9,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 10),
+                                                InkWell(
+                                                  onTap: ()async{
+
+                                                  },
+                                                  child: SizedBox(
+                                                    width: 130,
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.primaryColor2,
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: const Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Row(
+                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          children: [
+                                                            Text(
+                                                              'Notify me',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.w500,
+                                                                color: AppColors.whiteColor,
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                            SizedBox(width: 10),
+                                                            Icon(
+                                                              Icons.notifications_active,
+                                                              color: AppColors.whiteColor,
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        right: 0,
-                                        top: 0,
-                                        child: Container(
-                                          height: 70,
-                                          width: 100,
-                                          decoration: const BoxDecoration(
-                                            color: AppColors.primaryColor2,
-                                            borderRadius: BorderRadius.only(
-                                              bottomLeft: Radius.circular(21),
-                                              topRight: Radius.circular(6),
+                                                )
+                                              ],
                                             ),
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(15.0),
-                                            child: Icon(Icons.people_alt_outlined,size: 35,color: AppColors.whiteColor,),
-                                          ),
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }
-                          ),
-                        ],
-                      );
-                    }else{
-                      return Center(child: Text('No Data'),);
+                                        Positioned(
+                                          right: 0,
+                                          top: 0,
+                                          child: Container(
+                                            height: 70,
+                                            width: 100,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.primaryColor2,
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft: Radius.circular(21),
+                                                topRight: Radius.circular(6),
+                                              ),
+                                            ),
+                                            child: Padding(
+                                                padding: const EdgeInsets.all(15.0),
+                                                child: SizedBox(
+                                                  height:35,width:35,
+                                                  child: Image.asset('assets/icons/rings-wedding.png',color: AppColors.whiteColor,),
+                                                )
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }
+                            ),
+                          ],
+                        );
+                      }else{
+                        return Center(child: Text('No Data'),);
+                      }
+                      return Center(child: Text('Some error occured !,Please restart your application.'),);
                     }
-                    return Center(child: Text('Some error occured !,Please restart your application.'),);
-                  }
-              ),
-            ],
-          )
+                ),
+              ],
+            )
+        )
       ),
     );
   }

@@ -14,8 +14,12 @@ import 'package:rxroute_test/View/homeView/Leave/LeaveRequest.dart';
 import 'package:rxroute_test/View/homeView/Leave/leaveApprovals.dart';
 import 'package:rxroute_test/View/homeView/Doctor/add_doctor.dart';
 import 'package:rxroute_test/View/homeView/Employee/emp_list.dart';
+import 'package:rxroute_test/View/homeView/chemist/chemistList.dart';
 import 'package:rxroute_test/View/homeView/widgets/CustomDrawer.dart';
 import 'package:rxroute_test/View/notification/notification.dart';
+import 'package:rxroute_test/constants/styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../Util/Utils.dart';
 import '../../app_colors.dart';
 import '../../res/app_url.dart';
 import '../Add TP/add_tp.dart';
@@ -24,6 +28,8 @@ import '../events/widgets/eventCardWidget.dart';
 import 'Expense/expense_approvals.dart';
 import 'Expense/expense_request.dart';
 import 'package:http/http.dart' as http;
+
+import 'home_view_rep.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -103,11 +109,20 @@ class _HomeViewState extends State<HomeView> {
   Map<String,dynamic> allevents = {};
 
   Future<dynamic> getEvents() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
     print('get events called...');
     final url = Uri.parse(AppUrl.getEvents);
-
+    var data = {
+      "requesterUniqueId":uniqueID
+    };
     try {
-      final response = await http.get(url);
+      final response = await http.post(url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
+      );
       if (response.statusCode == 200) {
         // If the server returns a 200 OK response, parse the JSON
         var responseData = jsonDecode(response.body);
@@ -134,585 +149,613 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteColor,
-      key: _scaffoldKey,
-      drawer:  CustomDrawer(),
-      appBar: AppBar(
-        backgroundColor: AppColors.whiteColor,
-        leading:InkWell(
-          onTap: (){
-            _scaffoldKey.currentState?.openDrawer();
-          },
-            child: const Icon(Icons.menu)),
-        actions: [
-          InkWell(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Notifications(),));
-            },
-              child: const Icon(Icons.notifications_active,color: AppColors.primaryColor,size: 35,)),
-          const SizedBox(width: 20,)
-        ],
-        title: const Text('RXRoute',style: TextStyle(fontWeight: FontWeight.bold),),
-        centerTitle: true,
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => AddDoctor(),));
-                },
-                child: Container(
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(6)
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add,color: AppColors.whiteColor,),
-                        Text('Add doctor',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.whiteColor),)
-                      ],
-                    ),
-                  ),
-                ),
+    return WillPopScope(
+      onWillPop: ()async{
+        // Show a confirmation dialog
+        bool exit = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Confirm Exit'),
+            content: Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('No'),
               ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Yes'),
+              ),
+            ],
+          ),
+        );
+
+        // Return true to allow back navigation, false to prevent it
+        return exit ?? false; // default to false if exit is null
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteColor,
+        key: _scaffoldKey,
+        drawer:  CustomDrawer(),
+        appBar: AppBar(
+          backgroundColor: AppColors.whiteColor,
+          leading:InkWell(
+            onTap: (){
+              _scaffoldKey.currentState?.openDrawer();
+            },
+              child: const Icon(Icons.menu)),
+          actions: [
+            InkWell(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const Notifications(),));
+              },
+                child: const Icon(Icons.notifications_active,color: AppColors.primaryColor,size: 35,)),
+            Padding(
+              padding: const EdgeInsets.only(right: 20.0),
+              child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
             ),
-            const SizedBox(width: 10,),
-            Expanded(
-              child: InkWell(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const AddRep(),));
-                },
-                child: Container(
-                  height: 100,
-                  decoration: BoxDecoration(
+          ],
+          title: const Text('RXRoute',style: TextStyle(fontWeight: FontWeight.bold),),
+          centerTitle: true,
+        ),
+        bottomNavigationBar: BottomAppBar(
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => AddDoctor(),));
+                  },
+                  child: Container(
+                    height: 100,
+                    decoration: BoxDecoration(
                       color: AppColors.primaryColor,
                       borderRadius: BorderRadius.circular(6)
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add,color: AppColors.whiteColor,),
-                        Text('Add Employee',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.whiteColor),)
-                      ],
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add,color: AppColors.whiteColor,),
+                          Text('Add doctor',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.whiteColor),)
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            )
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child:Padding(
-              padding: const EdgeInsets.all(10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                            border: Border.all(width: 0.5,color: AppColors.borderColor),
-                            borderRadius: BorderRadius.circular(6)
-                        ),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            hintText: 'Search',
-                            prefixIcon: Icon(Icons.search),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
+              const SizedBox(width: 10,),
+              Expanded(
+                child: InkWell(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AddRep(),));
+                  },
+                  child: Container(
+                    height: 100,
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(6)
                     ),
-                    const SizedBox(width: 10,),
-                    Container(
-                      decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(6)
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: SizedBox(
-                            height: 25,width: 25,
-                            child: Image.asset('assets/icons/settings.png')),
-                      ),
-                    )
-                  ],
-                ),
-                SizedBox(
-                  height: 155,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 10.0),
-                                child: Container(
-                                  height: 120,
-                                  width: 224,
-                                  decoration: BoxDecoration(
-                                      color: AppColors.primaryColor,
-                                      borderRadius: BorderRadius.circular(8)
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: FutureBuilder(
-                                      future: totaldoctorscount(),
-                                      builder: (context,snapshot) {
-                                        if(snapshot.connectionState == ConnectionState.waiting){
-                                          return Center(child: CircularProgressIndicator(),);
-                                        }else if(snapshot.hasError){
-                                          return Center(child: Text('Some error occured !'),);
-                                        }else if(snapshot.hasData){
-                                          return Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text('Total Doctor',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
-                                              Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
-                                              Text('Updated : ${snapshot.data['lastDrAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
-                                            ],
-                                          );
-                                        }
-                                        return Text('Some error occured , Please restart your application !');
-                                      }
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 10.0),
-                                child: Container(
-                                  height: 120,
-                                  width: 224,
-                                  decoration: BoxDecoration(
-                                      color: AppColors.primaryColor,
-                                      borderRadius: BorderRadius.circular(8)
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: FutureBuilder(
-                                      future: totalrepcount(),
-                                      builder: (context,snapshot) {
-                                        if(snapshot.connectionState == ConnectionState.waiting){
-                                          return Center(child: CircularProgressIndicator(),);
-                                        }else if(snapshot.hasError){
-                                          return Center(child: Text('Some error occured !'),);
-                                        }else if(snapshot.hasData){
-                                          return Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text('Total Employee',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
-                                              Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
-                                              Text('Updated : ${snapshot.data['lastRepAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
-                                            ],
-                                          );
-                                        }
-                                        return Text('Some error occred , Please restart your application !');
-                                      }
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
+                          Icon(Icons.add,color: AppColors.whiteColor,),
+                          Text('Add Employee',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 14,color: AppColors.whiteColor),)
                         ],
-                      )
+                      ),
                     ),
                   ),
                 ),
-                GridView.count(
-                  shrinkWrap: true,
-                  primary: false,
-                  padding: const EdgeInsets.all(20),
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 20,
-                  crossAxisCount: 4,
-                  children: <Widget>[
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsListManager(),));
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(child: Image.asset('assets/icons/dctlist.png')),
-                          const Column(
-                            children: [
-                              Text('Doctors',style: TextStyle(
-                                fontWeight: FontWeight.w600
-                              ),),
-                              Text('List',style: TextStyle(
-                                  fontWeight: FontWeight.w600
-                              ),),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const EmpList(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/emplist.png')),
-                            const Column(
-                              children: [
-                                Text('Employee',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('List',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApprovals(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/lvapprove.png')),
-                            const Column(
-                              children: [
-                                Text('My',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Leaves',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApplyPage(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/lvrequest.png')),
-                            const Column(
-                              children: [
-                                Text('Leave',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Request',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseRequestPage(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/tp.png')),
-                            const Column(
-                              children: [
-                                Text('Expense',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Request',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovalsManger(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/expense.png')),
-                            const Column(
-                              children: [
-                                Text('My',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Expenses',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerApproveLeaves(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/expapprove.png')),
-                            const Column(
-                              children: [
-                                Text('Approve',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Leaves',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovalsManager(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/expapprove.png')),
-                            const Column(
-                              children: [
-                                Text('Approve',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Expenses',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => ListTP(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/tplist.png')),
-                            const Column(
-                              children: [
-                                Text('My',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('TP',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => AddTravelPlan(),));
-                      },
-                      child: SizedBox(
-                        child: Column(
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/tp.png')),
-                            const Column(
-                              children: [
-                                Text('Travel',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('Plan',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  ],
-                ),
-                const SizedBox(height: 10,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Todays Events',style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => Events(eventType: 'Todays Events'),));
-                      },
-                      child: const Text('See all',style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          decoration: TextDecoration.underline),),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10,),
-                FutureBuilder(
-                    future: getEvents(),
-                    builder: (context,snapshot) {
-                      if(snapshot.connectionState == ConnectionState.waiting){
-                        return Center(child: CircularProgressIndicator(),);
-                      }else if(snapshot.hasError){
-                        return Center(child: Text('Some error occured !'),);
-                      }else if(snapshot.hasData){
-                        return EventCardWidget( dataset: snapshot.data['todays'],);
-                      }
-                      return Center(child: Text('Some error occured , Please restart your application !'),);
-                    }
-                ),
-                const SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Upcoming Events',style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),),
-                    InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => UpcomingEvents(eventType: 'Upcoming Events'),));
-                      },
-                      child: const Text('See all',style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          decoration: TextDecoration.underline),),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10,),
-                FutureBuilder(
-                    future: getEvents(),
-                    builder: (context,snapshot) {
-                      var eventdata = snapshot.data['upcoming'][0];
-                      return Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(6)
+              )
+            ],
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: SafeArea(
+            child:Padding(
+                padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(width: 0.5,color: AppColors.borderColor),
+                              borderRadius: BorderRadius.circular(6)
+                          ),
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                              hintText: 'Search',
+                              prefixIcon: Icon(Icons.search),
+                              border: InputBorder.none,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10,),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(6)
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: SizedBox(
+                              height: 25,width: 25,
+                              child: Image.asset('assets/icons/settings.png')),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    height: 155,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 10.0),
+                                  child: Container(
+                                    height: 120,
+                                    width: 224,
+                                    decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius: BorderRadius.circular(8)
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: FutureBuilder(
+                                        future: totaldoctorscount(),
+                                        builder: (context,snapshot) {
+                                          if(snapshot.connectionState == ConnectionState.waiting){
+                                            return Center(child: CircularProgressIndicator(),);
+                                          }else if(snapshot.hasError){
+                                            return Center(child: Text('Some error occured !'),);
+                                          }else if(snapshot.hasData){
+                                            return Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('Total Doctor',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
+                                                Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
+                                                Text('Updated : ${snapshot.data['lastDrAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
+                                              ],
+                                            );
+                                          }
+                                          return Text('Some error occured , Please restart your application !');
+                                        }
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 10.0),
+                                  child: Container(
+                                    height: 120,
+                                    width: 224,
+                                    decoration: BoxDecoration(
+                                        color: AppColors.primaryColor,
+                                        borderRadius: BorderRadius.circular(8)
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: FutureBuilder(
+                                        future: totalrepcount(),
+                                        builder: (context,snapshot) {
+                                          if(snapshot.connectionState == ConnectionState.waiting){
+                                            return Center(child: CircularProgressIndicator(),);
+                                          }else if(snapshot.hasError){
+                                            return Center(child: Text('Some error occured !'),);
+                                          }else if(snapshot.hasData){
+                                            return Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('Total Employee',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
+                                                Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
+                                                Text('Updated : ${snapshot.data['lastRepAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
+                                              ],
+                                            );
+                                          }
+                                          return Text('Some error occred , Please restart your application !');
+                                        }
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        )
+                      ),
+                    ),
+                  ),
+                  GridView.count(
+                    shrinkWrap: true,
+                    primary: false,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 20,
+                    crossAxisCount: 4,
+                    children: <Widget>[
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsListManager(),));
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Image.asset('assets/icons/doctor_list.png',height: 35, width: 35,),
+                            const Column(
+                              children: [
+                                Text('Doctors',style: text60014black,),
+                                Text('List',style: text60014black,),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const EmpList(),));
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/emp_list.png',height: 35, width:35,),
+                            const Column(
+                              children: [
+                                Text('Employee',style: text60014black),
+                                Text('List',style:text60014black),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApprovals(),));
+                        },
+                        child: SizedBox(
+                          child: Column(
+                            children: [
+                              Image.asset('assets/icons/lvapprove.png',height: 35, width: 35,),
+                              const Column(
                                 children: [
-                                  const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
-                                  Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
-                                  const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                  const SizedBox(height: 30,),
-                                  Row(
+                                  Text('My',style: text60014black),
+                                  Text('Leaves',style:text60014black,),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      // InkWell(
+                      //   onTap: (){
+                      //     Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApplyPage(),));
+                      //   },
+                      //   child: SizedBox(
+                      //     child: Column(
+                      //       children: [
+                      //         Expanded(child: Image.asset('assets/icons/lvrequest.png')),
+                      //         const Column(
+                      //           children: [
+                      //             Text('Leave',style: TextStyle(
+                      //                 fontWeight: FontWeight.w600
+                      //             ),),
+                      //             Text('Request',style: TextStyle(
+                      //                 fontWeight: FontWeight.w600
+                      //             ),),
+                      //           ],
+                      //         )
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
+                      // InkWell(
+                      //   onTap: (){
+                      //     Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseRequestPage(),));
+                      //   },
+                      //   child: SizedBox(
+                      //     child: Column(
+                      //       children: [
+                      //         Expanded(child: Image.asset('assets/icons/tp.png')),
+                      //         const Column(
+                      //           children: [
+                      //             Text('Expense',style: TextStyle(
+                      //                 fontWeight: FontWeight.w600
+                      //             ),),
+                      //             Text('Request',style: TextStyle(
+                      //                 fontWeight: FontWeight.w600
+                      //             ),),
+                      //
+                      //           ],
+                      //         )
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovalsManger(),));
+                        },
+                        child: SizedBox(
+                          child: Column(
+                            children: [
+                              Image.asset('assets/icons/expense.png',height:35, width:35,),
+                              const Column(
+                                children: [
+                                  Text('My',style: text60014black),
+                                  Text('Expenses',style: text60014black),
+      
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+      
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerApproveLeaves(),));
+                        },
+                        child: SizedBox(
+                          child: Column(
+                            children: [
+                              Image.asset('assets/icons/expapprove.png',height: 35, width:35,),
+                              const Column(
+                                children: [
+                                  Text('Approve',style: text60014black),
+                                  Text('Leaves',style: text60014black),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+      
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovalsManager(),));
+                        },
+                        child: SizedBox(
+                          child: Column(
+                            children: [
+                              Image.asset('assets/icons/expapprove.png',height: 35, width: 35,),
+                              const Column(
+                                children: [
+                                  Text('Approve',style: text60014black),
+                                  Text('Expenses',style: text60014black,),
+      
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+      
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const Chemistlist(),));
+                        },
+                        child: SizedBox(
+                          child: Column(
+                            children: [
+                              Image.asset('assets/icons/chemist_list.png', height: 35, width: 35,),
+                              const Column(
+                                children: [
+                                  Text('Chemist',style: text60014black),
+                                  Text('List',style: text60014black,),
+      
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+      
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ListTP(),));
+                        },
+                        child: Column(
+                          children: [
+                            Expanded(child: Image.asset('assets/icons/tplist.png',height: 35,width: 35,)),
+                            const Column(
+                              children: [
+                                Text('My',style:text60014black),
+                                Text('TP',style: text60014black,),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+      
+                      // InkWell(
+                      //   onTap: (){
+                      //     Navigator.push(context, MaterialPageRoute(builder: (context) => AddTravelPlan(),));
+                      //   },
+                      //   child: SizedBox(
+                      //     child: Column(
+                      //       children: [
+                      //         Expanded(child: Image.asset('assets/icons/tp.png')),
+                      //         const Column(
+                      //           children: [
+                      //             Text('Travel',style: TextStyle(
+                      //                 fontWeight: FontWeight.w600
+                      //             ),),
+                      //             Text('Plan',style: TextStyle(
+                      //                 fontWeight: FontWeight.w600
+                      //             ),),
+                      //           ],
+                      //         )
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
+      
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Todays Events',style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),),
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => Events(eventType: 'Todays Events'),));
+                        },
+                        child: const Text('See all',style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            decoration: TextDecoration.underline),),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
+                  FutureBuilder(
+                      future: getEvents(),
+                      builder: (context,snapshot) {
+                        if(snapshot.connectionState == ConnectionState.waiting){
+                          return Center(child: CircularProgressIndicator(),);
+                        }else if(snapshot.hasError){
+                          return Center(child: Text('Some error occured !'),);
+                        }else if(snapshot.hasData){
+                          if(snapshot.data['todays'].isEmpty){
+                            return Center(child: Text('No events today',style: text50014black,),);
+                          }
+                          return EventCardWidget( dataset: snapshot.data['todays'],);
+                        }
+                        return Center(child: Text('Some error occured , Please restart your application !'),);
+                      }
+                  ),
+                  const SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Upcoming Events',style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),),
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => UpcomingEvents(eventType: 'Upcoming Events'),));
+                        },
+                        child: const Text('See all',style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            decoration: TextDecoration.underline),),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
+                  FutureBuilder(
+                      future: getEvents(),
+                      builder: (context,snapshot) {
+                        if(snapshot.connectionState ==ConnectionState.waiting){
+                          return Center(child: CircularProgressIndicator(),);
+                        }else if(snapshot.hasError){
+                          return Center(child: Text('Some error occured !'),);
+                        }else if(snapshot.hasData){
+                          var eventdata = snapshot.data['upcoming'][0];
+                          if(snapshot.data['upcoming'][0].isEmpty){
+                            return Center(child: Text('No events',style: text50014black,),);
+                          }else
+                          return Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: AppColors.primaryColor,
+                                    borderRadius: BorderRadius.circular(6)
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
-                                      SizedBox(width: 10,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                      Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                      const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                      const SizedBox(height: 30,),
+                                      Row(
                                         children: [
-                                          Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                          Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
+                                          CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
+                                          SizedBox(width: 10,),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                              Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
+                                            ],
+                                          )
                                         ],
+                                      ),
+                                      const SizedBox(height: 10,),
+                                      SizedBox(
+                                        width: 130,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              color: AppColors.primaryColor2,
+                                              borderRadius: BorderRadius.circular(6)
+                                          ),
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                                SizedBox(width: 10,),
+                                                Icon(Icons.notifications_active,color: AppColors.whiteColor,),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       )
                                     ],
                                   ),
-                                  const SizedBox(height: 10,),
-                                  SizedBox(
-                                    width: 130,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor2,
-                                          borderRadius: BorderRadius.circular(6)
-                                      ),
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                            SizedBox(width: 10,),
-                                            Icon(Icons.notifications_active,color: AppColors.whiteColor,),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              height: 70,
-                              width: 100,
-                              decoration: const BoxDecoration(
-                                  color:AppColors.primaryColor2,
-                                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Image.asset('assets/icons/cake.png'),
-                              ),
-                            ),
-                          )
-                        ],
-                      );
-                    }
-                ),
-                const SizedBox(height: 70,)
-              ],
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: Container(
+                                  height: 70,
+                                  width: 100,
+                                  decoration: const BoxDecoration(
+                                      color:AppColors.primaryColor2,
+                                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(15.0),
+                                    child: Image.asset('assets/icons/cake.png'),
+                                  ),
+                                ),
+                              )
+                            ],
+                          );
+                        }
+                        return Center(child: Text('Some error occured , Please restart your application !'),);
+                      }
+                  ),
+                  const SizedBox(height: 70,)
+                ],
+              ),
             ),
           ),
         ),

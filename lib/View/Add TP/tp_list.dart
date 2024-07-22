@@ -2,10 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/constants/styles.dart';
 import 'package:rxroute_test/res/app_url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Util/Utils.dart';
 import '../../app_colors.dart';
+import '../homeView/home_view_rep.dart';
 
 class ListTP extends StatefulWidget {
   const ListTP({super.key});
@@ -15,8 +18,6 @@ class ListTP extends StatefulWidget {
 }
 
 class _ListTPState extends State<ListTP> {
-
-
   Future<dynamic> gettplist() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     String? uniqueID = preferences.getString('uniqueID');
@@ -25,7 +26,7 @@ class _ListTPState extends State<ListTP> {
 
     // Replace with your actual data payload
     var data = {
-      "requesterId":uniqueID
+      "requesterId": uniqueID
     };
 
     try {
@@ -52,10 +53,13 @@ class _ListTPState extends State<ListTP> {
       throw Exception('Failed to connect to the server');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.whiteColor,
       appBar: AppBar(
+        backgroundColor: AppColors.whiteColor,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: InkWell(
@@ -71,98 +75,118 @@ class _ListTPState extends State<ListTP> {
             ),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         centerTitle: true,
         title: const Text(
           'My Requests',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: (){
+          Navigator.pushNamed(context, RoutesName.addTp);
+        },
+        child: Icon(Icons.add,color: AppColors.whiteColor,),
+      ),
       body: FutureBuilder(
-        future: gettplist(),
-        builder: (context,snapshot) {
-          if(snapshot.connectionState == ConnectionState.waiting){
-            return Center(child: CircularProgressIndicator(),);
-          }else if(snapshot.hasError){
-            return Center(child: Text('Some error occured !'),);
-          }else if(snapshot.hasData){
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(width: 0.5,color: AppColors.borderColor),
-                              borderRadius: BorderRadius.circular(6)
-                          ),
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              hintText: 'Search',
-                              prefixIcon: Icon(Icons.search),
-                              border: InputBorder.none,
+          future: gettplist(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator(),);
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Some error occurred!'),);
+            } else if (snapshot.hasData) {
+              List<dynamic> dataList = snapshot.data!['data'];
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                                border: Border.all(width: 0.5, color: AppColors.borderColor),
+                                borderRadius: BorderRadius.circular(6)
+                            ),
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                hintText: 'Search',
+                                prefixIcon: Icon(Icons.search),
+                                border: InputBorder.none,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10,),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(6)
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: SizedBox(
-                              height: 25,width: 25,
-                              child: Image.asset('assets/icons/settings.png')),
-                        ),
-                      )
-                    ],
+                        const SizedBox(width: 10,),
+                        Container(
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(6)
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: SizedBox(
+                              height: 25, width: 25,
+                              child: Image.asset('assets/icons/settings.png'),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    // shrinkWrap: true,
-                    itemCount: snapshot.data!['data'].length,
-                    itemBuilder: (context,index) {
-                      var snapdata = snapshot.data!['data'][index];
-                      return Column(
-                        children: [
-                          Padding(
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: dataList.length + 1, // Add 1 for the white tile
+                      itemBuilder: (context, index) {
+                        if (index < dataList.length) {
+                          var snapdata = dataList[index];
+                          return Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: AppColors.textfiedlColor,
-                                borderRadius: BorderRadius.circular(6)
+                                  color: AppColors.textfiedlColor,
+                                  borderRadius: BorderRadius.circular(6)
                               ),
                               child: ListTile(
                                 title: Text('${snapdata['headquarters_date']['date']}'),
-                              subtitle: Text('${snapdata['headquarters_date']['headquarters']}'),
+                                subtitle: Text('${snapdata['headquarters_date']['headquarters']}'),
                                 trailing: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    snapdata['accepted_by'] == null ?Text('Pending',style: text50010tcolor2,):Text('Accepted',style: text50010tcolor2,),
+                                    snapdata['accepted_by'] == null ? Text('Pending', style: text50010tcolor2,) : Text('Accepted', style: text50010tcolor2,),
                                     Text('${snapdata['amount'] ?? 'N/A'}'),
-                                    snapdata['accepted_by'] == null ?Icon(Icons.verified,color: Colors.grey,):Icon(Icons.verified,color: Colors.green,)
+                                    // snapdata['accepted_by'] == null ? Icon(Icons.verified, color: Colors.grey,) : Icon(Icons.verified, color: Colors.green,)
                                   ],
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      );
-                    }
+                          );
+                        } else {
+                          // This is the white tile at the end
+                          return Container(
+                            height: 100, // Adjust height as needed
+                            color: Colors.white,
+                            child: Center(
+                              child: Text(''),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                ),
-              ],
-            );
+                ],
+              );
+            }
+            return Center(child: Text('Some error occurred, please restart your application'),);
           }
-          return Center(child: Text('Some error occured , Please restart your application'),);
-        }
       ),
     );
   }
 }
-

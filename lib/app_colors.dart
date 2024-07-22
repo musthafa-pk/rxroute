@@ -11,6 +11,7 @@ class AppColors{
   static const Color textfiedlColor = Color.fromRGBO(247, 247, 247, 1);
   static const Color primaryColor3 = Color.fromRGBO(20, 255, 0, 1);
   static const Color primaryColor4 = Color.fromRGBO(246, 244, 251, 1);
+  static const Color primaryColor5 = Color.fromRGBO(255, 0, 0, 1);
 
   static const Color textColor3 = Color.fromRGBO(139, 139, 139, 1);
   static const Color textColor4 = Color.fromRGBO(106, 169, 207, 1);

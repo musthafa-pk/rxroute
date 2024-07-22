@@ -5,18 +5,20 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
+import 'package:rxroute_test/constants/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../app_colors.dart';
 import '../../../res/app_url.dart';
 class ExpenseApprovalsWidgets{
 
-
+ static TextEditingController searchController = TextEditingController();
   static Future<dynamic> getexpenserequests(String userID) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? uniqueID = preferences.getString('uniqueID');
     String url = AppUrl.get_expense_request_rep;
     Map<String, dynamic> data = {
-      "uniqueid":uniqueID
+      "uniqueid":uniqueID,
+      "searchData":searchController.text
     };
 
     try {
@@ -27,6 +29,7 @@ class ExpenseApprovalsWidgets{
         },
         body: jsonEncode(data),
       );
+      print('body:${jsonEncode(data)}');
       print('st code :${response.statusCode}');
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
@@ -41,55 +44,54 @@ class ExpenseApprovalsWidgets{
   }
 
   static Widget approved(String uniqueID) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(25.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(width: 0.5,color: AppColors.borderColor),
-                        borderRadius: BorderRadius.circular(6)
-                    ),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Search',
-                        prefixIcon: Icon(Icons.search),
-                        border: InputBorder.none,
-                      ),
+    return Padding(
+      padding: const EdgeInsets.all(25.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(width: 0.5,color: AppColors.borderColor),
+                      borderRadius: BorderRadius.circular(6)
+                  ),
+                  child: TextFormField(
+                    decoration: const InputDecoration(
+                      hintText: 'Search',
+                      prefixIcon: Icon(Icons.search),
+                      border: InputBorder.none,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10,),
-                Container(
-                  decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(6)
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SizedBox(
-                        height: 25,width: 25,
-                        child: Image.asset('assets/icons/settings.png')),
-                  ),
-                )
-              ],
-            ),
-            FutureBuilder(
-              future: getexpenserequests(uniqueID),
-              builder: (context,snapshot) {
-                if(snapshot.connectionState == ConnectionState.waiting){
-                  return Center(child: CircularProgressIndicator(),);
-                }else if(snapshot.hasError){
-                  return Center(child: Text('Some error occured !'),);
-                }else if(snapshot.hasData){
-                  return ListView.builder(
+              ),
+              const SizedBox(width: 10,),
+              Container(
+                decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(6)
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: SizedBox(
+                      height: 25,width: 25,
+                      child: Image.asset('assets/icons/settings.png')),
+                ),
+              )
+            ],
+          ),
+          FutureBuilder(
+            future: getexpenserequests(uniqueID),
+            builder: (context,snapshot) {
+              if(snapshot.connectionState == ConnectionState.waiting){
+                return Center(child: CircularProgressIndicator(),);
+              }else if(snapshot.hasError){
+                return Center(child: Text('Some error occured !'),);
+              }else if(snapshot.hasData){
+                return Expanded(
+                  child: ListView.builder(
                       itemCount: snapshot.data!.where((item) => item['status'] == 'Accepted').toList().length,
-                      shrinkWrap: true,
                       itemBuilder: (context,index) {
                         var snapdata = snapshot.data!.where((item) => item['status'] == 'Accepted').toList();
                         return Padding(
@@ -115,18 +117,18 @@ class ExpenseApprovalsWidgets{
                                       ),
                                       Padding(
                                         padding: EdgeInsets.only(left: 20.0),
-                                        child: Text('Sreya Alfrod',style: TextStyle(
+                                        child: Text('${snapdata[index]['doctorDetails'][0]['doc_name']}',style: TextStyle(
                                             fontWeight: FontWeight.w400,
                                             color: AppColors.borderColor,
                                             fontSize: 12)),
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 20.0),
-                                        child: Text('Inna Fred',style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.borderColor,
-                                            fontSize: 12)),
-                                      ),
+                                      // Padding(
+                                      //   padding: EdgeInsets.only(left: 20.0),
+                                      //   child: Text('${snapdata}',style: TextStyle(
+                                      //       fontWeight: FontWeight.w400,
+                                      //       color: AppColors.borderColor,
+                                      //       fontSize: 12)),
+                                      // ),
                                       SizedBox(height: 30,),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,23 +176,19 @@ class ExpenseApprovalsWidgets{
                                Positioned(
                                 right: 20,
                                 top: 65,
-                                child: Text('${snapdata[index]['status']}',style: TextStyle(
-                                    color: AppColors.primaryColor3,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14
-                                ),),
+                                child: Text('${snapdata[index]['status']}',style: text40016),
                               )
                             ],
                           ),
                         );
                       }
-                  );
-                }
-                return Center(child: Text('Please restart your application'),);
+                  ),
+                );
               }
-            )
-          ],
-        ),
+              return Center(child: Text('Please restart your application'),);
+            }
+          )
+        ],
       ),
     );
   }
@@ -242,98 +240,95 @@ class ExpenseApprovalsWidgets{
                 }else if(snapshot.hasError){
                   return Center(child: Text('Some error occured !'),);
                 }else if(snapshot.hasData){
-                  return ListView.builder(
-                      itemCount: snapshot.data!.where((item) => item['status'] == 'Rejected').toList().length,
-                      shrinkWrap: true,
-                      itemBuilder: (context,index) {
-                        var snapdata = snapshot.data!.where((item) => item['status'] == 'Rejected').toList();
-                        return Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.textfiedlColor,
-                                  borderRadius: BorderRadius.circular(6),
+                  return Expanded(
+                    child: ListView.builder(
+                        itemCount: snapshot.data!.where((item) => item['status'] == 'Rejected').toList().length,
+                        itemBuilder: (context,index) {
+                          var snapdata = snapshot.data!.where((item) => item['status'] == 'Rejected').toList();
+                          return Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.textfiedlColor,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            CircleAvatar(radius: 5,backgroundColor: AppColors.primaryColor,),
+                                            SizedBox(width: 10,),
+                                            Text('#TRNX${snapdata[index]['id']}'),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(left: 20.0),
+                                          child: Text('${snapdata[index]['doctorDetails'][0]['doc_name']}',style: TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.borderColor,
+                                              fontSize: 12)),
+                                        ),
+                                        // Padding(
+                                        //   padding: EdgeInsets.only(left: 20.0),
+                                        //   child: Text('Inna Fred',style: TextStyle(
+                                        //       fontWeight: FontWeight.w400,
+                                        //       color: AppColors.borderColor,
+                                        //       fontSize: 12)),
+                                        // ),
+                                        SizedBox(height: 30,),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.currency_rupee,size: 22,),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.only(top: 12.0),
+                                                      child: Text('${snapdata[index]['amount']}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 16),),
+                                                    ),
+                                                    Text('cash',style: TextStyle(
+                                                        fontWeight: FontWeight.w400,
+                                                        color: AppColors.borderColor,
+                                                        fontSize: 12),)
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.0),
+                                Positioned(
+                                  right: 10,
+                                  top: 10,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          CircleAvatar(radius: 5,backgroundColor: AppColors.primaryColor,),
-                                          SizedBox(width: 10,),
-                                          Text('#TRNX${snapdata[index]['id']}'),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 20.0),
-                                        child: Text('Sreya Alfrod',style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.borderColor,
-                                            fontSize: 12)),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 20.0),
-                                        child: Text('Inna Fred',style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.borderColor,
-                                            fontSize: 12)),
-                                      ),
-                                      SizedBox(height: 30,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(Icons.currency_rupee,size: 22,),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Padding(
-                                                    padding: EdgeInsets.only(top: 12.0),
-                                                    child: Text('${snapdata[index]['amount']}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 16),),
-                                                  ),
-                                                  Text('cash',style: TextStyle(
-                                                      fontWeight: FontWeight.w400,
-                                                      color: AppColors.borderColor,
-                                                      fontSize: 12),)
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
+                                      Text('${Utils.getTime(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
+                                      Text('${Utils.formatDate(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
                                     ],
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                right: 10,
-                                top: 10,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${Utils.getTime(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
-                                    Text('${Utils.formatDate(snapdata[index]['created_date'].toString())}',style: TextStyle(fontWeight: FontWeight.w400,fontSize: 12),),
-                                  ],
-                                ),
-                              ),
-                              Positioned(
-                                right: 20,
-                                top: 65,
-                                child: Text('${snapdata[index]['status']}',style: TextStyle(
-                                    color: AppColors.primaryColor3,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14
-                                ),),
-                              )
-                            ],
-                          ),
-                        );
-                      }
+                                Positioned(
+                                  right: 20,
+                                  top: 65,
+                                  child: Text('${snapdata[index]['status']}',style: text40016red),
+                                )
+                              ],
+                            ),
+                          );
+                        }
+                    ),
                   );
                 }
                 return Center(child: Text('Please restart your application'),);
@@ -359,11 +354,15 @@ class ExpenseApprovalsWidgets{
                       borderRadius: BorderRadius.circular(6)
                   ),
                   child: TextFormField(
+                    controller: searchController,
                     decoration: const InputDecoration(
                       hintText: 'Search',
                       prefixIcon: Icon(Icons.search),
                       border: InputBorder.none,
                     ),
+                    onFieldSubmitted: (value){
+                      searchController.text = value.toString();
+                    },
                   ),
                 ),
               ),
@@ -418,18 +417,12 @@ class ExpenseApprovalsWidgets{
                                         ),
                                         Padding(
                                           padding: EdgeInsets.only(left: 20.0),
-                                          child: Text('${snapdata['userDetails']}',style: TextStyle(
+                                          child: Text('${snapdata[index]['doctorDetails'][0]['doc_name']}',style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppColors.borderColor,
                                               fontSize: 12)),
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.only(left: 20.0),
-                                          child: Text('Inna Fred',style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              color: AppColors.borderColor,
-                                              fontSize: 12)),
-                                        ),
+
                                         SizedBox(height: 30,),
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,9 +470,9 @@ class ExpenseApprovalsWidgets{
                                   right: 20,
                                   top: 65,
                                   child: Text('${snapdata[index]['status']}',style: TextStyle(
-                                      color: AppColors.primaryColor3,
+                                      color: Colors.black45,
                                       fontWeight: FontWeight.w400,
-                                      fontSize: 14
+                                      fontSize: 16
                                   ),),
                                 )
                               ],

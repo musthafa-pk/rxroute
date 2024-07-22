@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:rxroute_test/Splash/splashscreen.dart';
 import 'package:rxroute_test/Splash/successfully_added.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
+import 'package:rxroute_test/View/Add%20TP/add_tp.dart';
 import 'package:rxroute_test/View/MarkasVisited/markasVisited.dart';
 import 'package:rxroute_test/View/authView/loginView.dart';
 import 'package:rxroute_test/View/homeView/Doctor/add_doctor.dart';
 import 'package:rxroute_test/View/homeView/Employee/add_rep.dart';
+import 'package:rxroute_test/View/homeView/Expense/expense_request.dart';
+import 'package:rxroute_test/View/homeView/Leave/LeaveRequest.dart';
 import 'package:rxroute_test/View/homeView/chemist/add_chemist.dart';
 import 'package:rxroute_test/View/homeView/home_view.dart';
 import 'package:rxroute_test/View/homeView/home_view_rep.dart';
+import 'package:rxroute_test/View/homeView/search/home_search_rep.dart';
 import 'package:rxroute_test/constants/styles.dart';
 
 class Routes{
@@ -40,6 +44,16 @@ class Routes{
 
       case RoutesName.add_chemist:
         return MaterialPageRoute(builder: (BuildContext context)=>const AddChemist());
+
+      case RoutesName.requestLeave:
+        return MaterialPageRoute(builder: (BuildContext context) => const LeaveApplyPage(),);
+
+      case RoutesName.requestExpense:
+        return MaterialPageRoute(builder: (BuildContext context) => const ExpenseRequestPage(),);
+
+      case RoutesName.addTp:
+        return MaterialPageRoute(builder: (BuildContext context) => const AddTravelPlan(),);
+
 
 
       default:

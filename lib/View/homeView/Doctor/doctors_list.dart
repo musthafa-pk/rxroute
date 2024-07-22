@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:rxroute_test/View/homeView/Doctor/doctor_details.dart';
+import 'package:rxroute_test/View/homeView/Doctor/edit_doctor.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../Util/Routes/routes_name.dart';
 import '../../../Util/Utils.dart';
 import '../../../res/app_url.dart';
+import '../home_view_rep.dart';
 
 class DoctorsList extends StatefulWidget {
   const DoctorsList({super.key});
@@ -81,9 +84,12 @@ class _DoctorsListState extends State<DoctorsList> {
   }
 
   Future<void> searchdoctors() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
     String url = AppUrl.searchdoctors;
     Map<String, dynamic> data = {
-      "searchData": _searchController.text
+      "searchData": _searchController.text,
+      "requesterUniqueId":uniqueID,
     };
     try {
       final response = await http.post(
@@ -105,9 +111,7 @@ class _DoctorsListState extends State<DoctorsList> {
           getdoctors();
         }
       } else {
-        var responseData = jsonDecode(response.body);
-        Utils.flushBarErrorMessage('${responseData['message']}', context);
-        throw Exception('Failed to load data (status code: ${response.statusCode})');
+
       }
     } catch (e) {
       throw Exception('Failed to load data: $e');
@@ -192,12 +196,24 @@ class _DoctorsListState extends State<DoctorsList> {
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: (){
+          Navigator.pushNamed(context, RoutesName.add_doctor);
+        },
+        child: Icon(Icons.add,color: AppColors.whiteColor,),),
       body: RefreshIndicator(
         onRefresh: getdoctors,
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.only(top: 20.0,right: 20.0,left: 20.0),
             child: Column(
               children: [
                 Row(
@@ -236,57 +252,51 @@ class _DoctorsListState extends State<DoctorsList> {
                   ],
                 ),
                 Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView.builder(
-                          itemCount: list_of_doctors.length,
-                          itemBuilder: (context, index) {
-                            // return Text('${list_of_doctors[0]['addedBy_']}');
-                            var doctor = list_of_doctors[index];
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                  builder: (context) => DoctorDetails(doctorID: doctor['id']),
-                                ));
-                              },
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: getPastelColor(doctor['doc_name']),
-                                  child: Text("${doctor['doc_name'][0]}"),
-                                ),
-                                title: Text(doctor['doc_name']),
-                                subtitle: Text(doctor['specialization']),
-                                trailing: PopupMenuButton<String>(
-                                  color: AppColors.whiteColor,
-                                  onSelected: (String result) async {
-                                    if (result == 'edit') {
-                                      print('Edit action');
-                                    } else if (result == 'delete') {
-                                      print('else if of delete');
-                                      await _showDeleteConfirmationDialog(context, doctor['doc_name'], doctor['id']);
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                    const PopupMenuItem<String>(
-                                      value: 'edit',
-                                      child: Text('Edit'),
-                                    ),
-                                    const PopupMenuItem<String>(
-                                      value: 'delete',
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                  icon: const Icon(Icons.more_vert),
-                                ),
+                  child: _isLoading ? Center(child: CircularProgressIndicator()) : ListView.builder(
+                    itemCount: list_of_doctors.length,
+                    itemBuilder: (context, index) {
+                      // return Text('${list_of_doctors[0]['addedBy_']}');
+                      var doctor = list_of_doctors[index];
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => DoctorDetails(doctorID: doctor['id']),
+                          ));
+                        },
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: getPastelColor(doctor['doc_name']),
+                            child: Text("${doctor['doc_name'][0]}"),
+                          ),
+                          title: Text(doctor['doc_name']),
+                          subtitle: Text(doctor['specialization']),
+                          trailing: PopupMenuButton<String>(
+                            color: AppColors.whiteColor,
+                            onSelected: (String result) async {
+                              if (result == 'edit') {
+                                print('${doctor['id']}');
+                                Navigator.push(context,MaterialPageRoute(builder: (context) => EditDoctor(doctorID: doctor['id'].toString(),),));
+                                print('Edit action');
+                              } else if (result == 'delete') {
+                                print('else if of delete');
+                                await _showDeleteConfirmationDialog(context, doctor['doc_name'], doctor['id']);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                              const PopupMenuItem<String>(
+                                value: 'edit',
+                                child: Text('Edit'),
                               ),
-                            );
-                          },
+                              const PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ),
+                            ],
+                            icon: const Icon(Icons.more_vert),
+                          ),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ],

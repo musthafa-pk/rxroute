@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:rxroute_test/Splash/splashscreen.dart';
+
 import 'package:rxroute_test/Util/Routes/routes.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/app_colors.dart';
@@ -19,6 +19,7 @@ Future<void> _requestPermissions() async {
 }
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  // await AndroidAlarmManager.initialize();
   await _requestPermissions();
   // await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   runApp(MultiProvider(

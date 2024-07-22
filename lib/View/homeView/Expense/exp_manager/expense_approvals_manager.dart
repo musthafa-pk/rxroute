@@ -4,6 +4,7 @@ import 'package:rxroute_test/View/homeView/Expense/exp_rep/exp_widgets_mngr.dart
 import 'package:rxroute_test/View/homeView/Expense/widgets.dart';
 
 import '../../../../app_colors.dart';
+import '../../home_view_rep.dart';
 
 
 class ExpenseApprovalsManger extends StatefulWidget {
@@ -67,6 +68,12 @@ class _ExpenseApprovalsMangerState extends State<ExpenseApprovalsManger> with Si
           labelColor: Colors.black,
           indicatorColor: Colors.green,
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(

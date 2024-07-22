@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 class Utils{
 
   static const platform = MethodChannel('com.example.rxroute_test/alarm');
@@ -114,8 +115,22 @@ class Utils{
     preferences.remove('unique');
     preferences.remove('userType');
     preferences.remove('userEmail');
+    preferences.clear();
     Navigator.pushNamedAndRemoveUntil(context, RoutesName.login, (route) => false,);
     return true;
   }
+
+  static Future<void> makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      throw 'Could not launch $launchUri';
+    }
+  }
+
 
 }

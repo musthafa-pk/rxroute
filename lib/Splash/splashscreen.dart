@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rxroute_test/Util/Utils.dart';
 import 'package:rxroute_test/View/authView/loginView.dart';
+import 'package:rxroute_test/View/homeView/home_view.dart';
+import 'package:rxroute_test/View/homeView/home_view_rep.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:rxroute_test/constants/styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/bubble.dart';
 class SplashScreen extends StatefulWidget {
@@ -16,7 +19,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-
     super.initState();
     _initPackageInfo();
     _navigateToHome();
@@ -31,11 +33,32 @@ class _SplashScreenState extends State<SplashScreen> {
 
 
   _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 3), () {});
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginView()),
-    );
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
+    String? userType = preferences.getString('userType');
+    print('userType:$userType');
+    print('objectddd$preferences');
+    if(uniqueID != null){
+      if(userType == 'rep'){
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeViewRep()),
+        );
+      }else if(userType == 'manager'){
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeView()),
+        );
+      }
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginView(),));
+    }else{
+      await Future.delayed(const Duration(seconds: 3), () {});
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginView()),
+      );
+    }
+
   }
 
   @override

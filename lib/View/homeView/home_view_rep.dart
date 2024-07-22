@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/View/Add%20TP/add_tp.dart';
 import 'package:rxroute_test/View/Add%20TP/tp_list.dart';
 import 'package:rxroute_test/View/events/upcoming_events.dart';
@@ -11,6 +12,7 @@ import 'package:rxroute_test/View/homeView/search/home_search_rep.dart';
 
 import 'package:rxroute_test/View/homeView/widgets/CustomDrawer.dart';
 import 'package:http/http.dart' as http;
+import 'package:rxroute_test/constants/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Util/Utils.dart';
 import '../../app_colors.dart';
@@ -144,11 +146,19 @@ class _HomeViewRepState extends State<HomeViewRep> {
   Map<String,dynamic> allevents = {};
 
   Future<dynamic> getEvents() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? uniqueID = preferences.getString('uniqueID');
     print('get events called...');
     final url = Uri.parse(AppUrl.getEvents);
-
+    var data = {
+      "requesterUniqueId":uniqueID
+    };
     try {
-      final response = await http.get(url);
+      final response = await http.post(url,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(data));
       if (response.statusCode == 200) {
         // If the server returns a 200 OK response, parse the JSON
         var responseData = jsonDecode(response.body);
@@ -229,369 +239,252 @@ class _HomeViewRepState extends State<HomeViewRep> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteColor,
-      key: _scaffoldKey,
-      drawer:  CustomDrawer(),
-      appBar: AppBar(
+    return WillPopScope(
+      onWillPop: ()async{
+        // Show a confirmation dialog
+        bool exit = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Confirm Exit'),
+            content: Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Yes'),
+              ),
+            ],
+          ),
+        );
+
+        // Return true to allow back navigation, false to prevent it
+        return exit ?? false; // default to false if exit is null
+      },
+      child: Scaffold(
         backgroundColor: AppColors.whiteColor,
-        leading:InkWell(
-            onTap: (){
-              _scaffoldKey.currentState?.openDrawer();
-            },
-            child: const Icon(Icons.menu)),
-        actions: [
-          InkWell(
+        key: _scaffoldKey,
+        drawer:  CustomDrawer(),
+        appBar: AppBar(
+          backgroundColor: AppColors.whiteColor,
+          leading:InkWell(
               onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const Notifications(),));
+                _scaffoldKey.currentState?.openDrawer();
               },
-              child: const Icon(Icons.notifications_active,color: AppColors.primaryColor,size: 35,)),
-          const SizedBox(width: 20,),
-        ],
-        title: const Text('RXRoute',style: TextStyle(fontWeight: FontWeight.bold),),
-        centerTitle: true,
-      ),
-      floatingActionButton: SizedBox(
-        width: MediaQuery.of(context).size.width/2,
-        child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryColor2
-        ),
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => AddDoctor(),));
-        },
-        child: const Row(
-          children: [
-            Icon(Icons.add,color: AppColors.whiteColor,),
-            SizedBox(width: 10,),
-            Text('Add Doctor',style: TextStyle(
-              color: AppColors.whiteColor
-            ),),
+              child: const Icon(Icons.menu)),
+          actions: [
+            InkWell(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const Notifications(),));
+                },
+                child: const Icon(Icons.notifications_active,color: AppColors.primaryColor,size: 35,)),
+            ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+            const SizedBox(width: 20,),
           ],
+          title: const Text('RXRoute',style: TextStyle(fontWeight: FontWeight.bold),),
+          centerTitle: true,
         ),
-            ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: RefreshIndicator(
-        color: AppColors.primaryColor,
-        onRefresh: refreshfunction,
-        child: SingleChildScrollView(
-          child: SafeArea(
-            child:Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
+        floatingActionButton: SizedBox(
+          width: MediaQuery.of(context).size.width/2,
+          child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor2
+          ),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => AddDoctor(),));
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.add,color: AppColors.whiteColor,),
+              SizedBox(width: 10,),
+              Text('Add Doctor',style: TextStyle(
+                color: AppColors.whiteColor
+              ),),
+            ],
+          ),
+              ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        body: RefreshIndicator(
+          color: AppColors.primaryColor,
+          onRefresh: refreshfunction,
+          child: SingleChildScrollView(
+            child: SafeArea(
+              child:Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              print('navigate to home search rep');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => HomesearchRep()),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(width: 0.5, color: AppColors.borderColor),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: TextFormField(
+                                readOnly: true,
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Search',
+                                  prefixIcon: Icon(Icons.search),
+                                  border: InputBorder.none,
+                                ),
+                                onTap: () {
+                                  // Optional: You can also trigger the navigation here
+                                  print('navigate to home search rep');
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => HomesearchRep()),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
                           decoration: BoxDecoration(
-                            border: Border.all(width: 0.5, color: AppColors.borderColor),
+                            color: AppColors.primaryColor,
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: TextFormField(
-                            controller: _searchController,
-                            decoration: const InputDecoration(
-                              hintText: 'Search',
-                              prefixIcon: Icon(Icons.search),
-                              border: InputBorder.none,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: SizedBox(
+                              height: 25,
+                              width: 25,
+                              child: Image.asset('assets/icons/settings.png'),
                             ),
-                            onFieldSubmitted: (value) {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomesearchRep(searchdata: _searchController.text,),));
-                            },
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: SizedBox(
-                            height: 25,
-                            width: 25,
-                            child: Image.asset('assets/icons/settings.png'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 155,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 10.0),
-                                    child: Container(
-                                      height: 120,
-                                      width: 224,
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius: BorderRadius.circular(8)
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('Total Doctor',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
-                                            FutureBuilder(
-                                              future: totaldoctorscount(),
-                                              builder: (context,snapshot) {
-                                                if(snapshot.connectionState == ConnectionState.waiting){
-                                                  return Center(child: CircularProgressIndicator(backgroundColor: AppColors.whiteColor,),);
-                                                }else if(snapshot.hasError){
-                                                  return Center(child: Text('Some error occured !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400)),);
-                                                }else if(snapshot.hasData){
-                                                  return Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
-                                                      Text('Updated : ${snapshot.data['lastDrAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
-                                                    ],
-                                                  );
-                                                }
-                                                return Text('Some error occured , Please restart your application !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400));
-                                              }
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 10.0),
-                                    child: Container(
-                                      height: 120,
-                                      width: 224,
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor,
-                                          borderRadius: BorderRadius.circular(8)
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: FutureBuilder(
-                                          future: totalrepcount(),
-                                          builder: (context,snapshot) {
-                                            if(snapshot.connectionState == ConnectionState.waiting){
-                                              return Center(child: CircularProgressIndicator(backgroundColor: AppColors.whiteColor,),);
-                                            }else if(snapshot.hasError){
-                                              return Center(child: Text('Some error happened !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400)),);
-                                            }else if(snapshot.hasData){
-                                              return Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text('Total Employee',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
-                                                  Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
-                                                  Text('Updated : ${snapshot.data['lastRepAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
-                                                ],
-                                              );
-                                            }
-                                            return Text('Some error occured , Please restart your application !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400)) ;
-                                          }
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ],
-                          )
-                      ),
+                      ],
                     ),
-                  ),
-                  GridView.count(
-                    shrinkWrap: true,
-                    primary: false,
-                    padding: const EdgeInsets.all(20),
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 20,
-                    crossAxisCount: 4,
-                    children: <Widget>[
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsList(),));
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(child: Image.asset('assets/icons/dctlist.png')),
-                            const Column(
+                    SizedBox(
+                      height: 155,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
                               children: [
-                                Text('Doctors',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
-                                Text('List',style: TextStyle(
-                                    fontWeight: FontWeight.w600
-                                ),),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 10.0),
+                                      child: Container(
+                                        height: 120,
+                                        width: 224,
+                                        decoration: BoxDecoration(
+                                            color: AppColors.primaryColor,
+                                            borderRadius: BorderRadius.circular(8)
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Total Doctor',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
+                                              FutureBuilder(
+                                                future: totaldoctorscount(),
+                                                builder: (context,snapshot) {
+                                                  if(snapshot.connectionState == ConnectionState.waiting){
+                                                    return Center(child: CircularProgressIndicator(backgroundColor: AppColors.whiteColor,),);
+                                                  }else if(snapshot.hasError){
+                                                    return Center(child: Text('Some error occured !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400)),);
+                                                  }else if(snapshot.hasData){
+                                                    return Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
+                                                        Text('Updated : ${snapshot.data['lastDrAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
+                                                      ],
+                                                    );
+                                                  }
+                                                  return Text('Some error occured , Please restart your application !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400));
+                                                }
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 10.0),
+                                      child: Container(
+                                        height: 120,
+                                        width: 224,
+                                        decoration: BoxDecoration(
+                                            color: AppColors.primaryColor,
+                                            borderRadius: BorderRadius.circular(8)
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16.0),
+                                          child: FutureBuilder(
+                                            future: totalrepcount(),
+                                            builder: (context,snapshot) {
+                                              if(snapshot.connectionState == ConnectionState.waiting){
+                                                return Center(child: CircularProgressIndicator(backgroundColor: AppColors.whiteColor,),);
+                                              }else if(snapshot.hasError){
+                                                return Center(child: Text('Some error happened !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400)),);
+                                              }else if(snapshot.hasData){
+                                                return Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('Total Employee',style: TextStyle(color: AppColors.whiteColor,fontSize:14,fontWeight: FontWeight.w600),),
+                                                    Text('${snapshot.data['get_count']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 28,fontWeight: FontWeight.w600),),
+                                                    Text('Updated : ${snapshot.data['lastRepAddedDate']}',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400),),
+                                                  ],
+                                                );
+                                              }
+                                              return Text('Some error occured , Please restart your application !',style: TextStyle(color: AppColors.whiteColor,fontSize: 12,fontWeight: FontWeight.w400)) ;
+                                            }
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ],
                             )
-                          ],
                         ),
                       ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApprovals(),));
-                        },
-                        child: SizedBox(
+                    ),
+                    GridView.count(
+                      shrinkWrap: true,
+                      primary: false,
+                      // padding: const EdgeInsets.all(20),
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 20,
+                      crossAxisCount: 4,
+                      children: <Widget>[
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  DoctorsList(),));
+                          },
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(child: Image.asset('assets/icons/lvapprove.png')),
+                              Expanded(child: Image.asset('assets/icons/dctlist.png',height: 35,width: 35,)),
                               const Column(
                                 children: [
-                                  Text('My',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('Leaves',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApplyPage(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/lvrequest.png')),
-                              const Column(
-                                children: [
-                                  Text('Leave',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('Request',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseRequestPage(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/tp.png')),
-                              const Column(
-                                children: [
-                                  Text('Expense',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('Request',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/expense.png')),
-                              const Column(
-                                children: [
-                                  Text('My',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('Expenses',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const AddChemist(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/chemist.png')),
-                              const Column(
-                                children: [
-                                  Text('Add',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('Chemist',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => AddTravelPlan(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/tp.png')),
-                              const Column(
-                                children: [
-                                  Text('Travel',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('Plan',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => Chemistlist(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/chemist_list.png')),
-                              const Column(
-                                children: [
-                                  Text('Chemist',style: TextStyle(
+                                  Text('Doctors',style: TextStyle(
                                       fontWeight: FontWeight.w600
                                   ),),
                                   Text('List',style: TextStyle(
@@ -602,173 +495,510 @@ class _HomeViewRepState extends State<HomeViewRep> {
                             ],
                           ),
                         ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ListTP(),));
-                        },
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              Expanded(child: Image.asset('assets/icons/tplist.png')),
-                              const Column(
-                                children: [
-                                  Text('My',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                  Text('TP',style: TextStyle(
-                                      fontWeight: FontWeight.w600
-                                  ),),
-                                ],
-                              )
-                            ],
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApprovals(),));
+                          },
+                          child: SizedBox(
+                            child: Column(
+                              children: [
+                                Expanded(child: Image.asset('assets/icons/lvapprove.png',height: 35,width: 35,)),
+                                const Column(
+                                  children: [
+                                    Text('My',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                    Text('Leaves',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                        // InkWell(
+                        //   onTap: (){
+                        //     Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaveApplyPage(),));
+                        //   },
+                        //   child: SizedBox(
+                        //     child: Column(
+                        //       children: [
+                        //         Expanded(child: Image.asset('assets/icons/lvrequest.png')),
+                        //         const Column(
+                        //           children: [
+                        //             Text('Leave',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //             Text('Request',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //           ],
+                        //         )
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+                        // InkWell(
+                        //   onTap: (){
+                        //     Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseRequestPage(),));
+                        //   },
+                        //   child: SizedBox(
+                        //     child: Column(
+                        //       children: [
+                        //         Expanded(child: Image.asset('assets/icons/tp.png')),
+                        //         const Column(
+                        //           children: [
+                        //             Text('Expense',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //             Text('Request',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //
+                        //           ],
+                        //         )
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpenseApprovals(),));
+                          },
+                          child: SizedBox(
+                            child: Column(
+                              children: [
+                                Expanded(child: Image.asset('assets/icons/expense.png',height: 35,width: 35,)),
+                                const Column(
+                                  children: [
+                                    Text('My',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                    Text('Expenses',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
 
-                    ],
-                  ),
-                  const SizedBox(height: 10,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Todays Events',style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => Events(eventType: 'Todays Events'),));
-                        },
-                        child: const Text('See all',style: TextStyle(
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            decoration: TextDecoration.underline),),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10,),
-                   FutureBuilder(
-                     future: getEvents(),
-                     builder: (context,snapshot) {
-                       if(snapshot.connectionState == ConnectionState.waiting){
-                         return Center(child: CircularProgressIndicator(),);
-                       }else if(snapshot.hasError){
-                         return Center(child: Text('Some error occured !'),);
-                       }else if(snapshot.hasData){
-                         return EventCardWidget( dataset: snapshot.data['todays'],);
-                       }
-                       return Center(child: Text('Some error occured , Please restart your application !'),);
-                     }
-                   ),
-                  const SizedBox(height: 20,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Upcoming Events',style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),),
-                      InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => UpcomingEvents(eventType: 'Upcoming Events'),));
-                        },
-                        child: const Text('See all',style: TextStyle(
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            decoration: TextDecoration.underline),),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10,),
-                  FutureBuilder(
-                    future: getEvents(),
-                    builder: (context,snapshot) {
-                      var eventdata = snapshot.data['upcoming'][0];
-                      return Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(6)
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
-                                  Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
-                                  const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                  const SizedBox(height: 30,),
-                                  Row(
-                                    children: [
-                                      CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
-                                      SizedBox(width: 10,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                          Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10,),
-                                  SizedBox(
-                                    width: 130,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          color: AppColors.primaryColor2,
-                                          borderRadius: BorderRadius.circular(6)
-                                      ),
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
-                                            SizedBox(width: 10,),
-                                            Icon(Icons.notifications_active,color: AppColors.whiteColor,),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
+                                  ],
+                                )
+                              ],
                             ),
                           ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              height: 70,
-                              width: 100,
-                              decoration: const BoxDecoration(
-                                  color:AppColors.primaryColor2,
-                                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Image.asset('assets/icons/cake.png'),
-                              ),
+                        ),
+                        // InkWell(
+                        //   onTap: (){
+                        //     Navigator.push(context, MaterialPageRoute(builder: (context) => const AddChemist(),));
+                        //   },
+                        //   child: SizedBox(
+                        //     child: Column(
+                        //       children: [
+                        //         Expanded(child: Image.asset('assets/icons/chemist.png')),
+                        //         const Column(
+                        //           children: [
+                        //             Text('Add',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //             Text('Chemist',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //           ],
+                        //         )
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+
+                        // InkWell(
+                        //   onTap: (){
+                        //     Navigator.push(context, MaterialPageRoute(builder: (context) => AddTravelPlan(),));
+                        //   },
+                        //   child: SizedBox(
+                        //     child: Column(
+                        //       children: [
+                        //         Expanded(child: Image.asset('assets/icons/tp.png')),
+                        //         const Column(
+                        //           children: [
+                        //             Text('Travel',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //             Text('Plan',style: TextStyle(
+                        //                 fontWeight: FontWeight.w600
+                        //             ),),
+                        //           ],
+                        //         )
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Chemistlist(),));
+                          },
+                          child: SizedBox(
+                            child: Column(
+                              children: [
+                                Expanded(child: Image.asset('assets/icons/chemist_list.png',height: 35,width:35)),
+                                const Column(
+                                  children: [
+                                    Text('Chemist',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                    Text('List',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                  ],
+                                )
+                              ],
                             ),
-                          )
-                        ],
-                      );
-                    }
-                  ),
-                  const SizedBox(height: 70,)
-                ],
+                          ),
+                        ),
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => ListTP(),));
+                          },
+                          child: SizedBox(
+                            child: Column(
+                              children: [
+                                Expanded(child: Image.asset('assets/icons/tplist.png',height: 35,width: 35,)),
+                                const Column(
+                                  children: [
+                                    Text('My',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                    Text('TP',style: TextStyle(
+                                        fontWeight: FontWeight.w600
+                                    ),),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                    const SizedBox(height: 10,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Todays Events',style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),),
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => Events(eventType: 'Todays Events'),));
+                          },
+                          child: const Text('See all',style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              decoration: TextDecoration.underline),),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10,),
+                     FutureBuilder(
+                       future: getEvents(),
+                       builder: (context,snapshot) {
+                         if(snapshot.connectionState == ConnectionState.waiting){
+                           return Center(child: CircularProgressIndicator(),);
+                         }else if(snapshot.hasError){
+                           return Center(child: Text('Some error occured !'),);
+                         }else if(snapshot.hasData){
+                           if(snapshot.data['todays'][0]['todayBirthday'].length == 0){
+                             return Text('No Birthdays Today');
+                           }else{
+                             var eventdata = snapshot.data['todays'][0]['todayBirthday'][0];
+                             return Stack(
+                                   children: [
+                                     Container(
+                                       decoration: BoxDecoration(
+                                           color: AppColors.primaryColor,
+                                           borderRadius: BorderRadius.circular(6)
+                                       ),
+                                       child: Padding(
+                                         padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
+                                         child: Column(
+                                           crossAxisAlignment: CrossAxisAlignment.start,
+                                           children: [
+                                             const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                             Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                             const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                             const SizedBox(height: 30,),
+                                             Row(
+                                               children: [
+                                                 CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
+                                                 SizedBox(width: 10,),
+                                                 Column(
+                                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                                   children: [
+                                                     Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                                     Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
+                                                   ],
+                                                 )
+                                               ],
+                                             ),
+                                             const SizedBox(height: 10,),
+                                             SizedBox(
+                                               width: 130,
+                                               child: Container(
+                                                 decoration: BoxDecoration(
+                                                     color: AppColors.primaryColor2,
+                                                     borderRadius: BorderRadius.circular(6)
+                                                 ),
+                                                 child: const Padding(
+                                                   padding: EdgeInsets.all(8.0),
+                                                   child: Row(
+                                                     mainAxisAlignment: MainAxisAlignment.center,
+                                                     children: [
+                                                       Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                                       SizedBox(width: 10,),
+                                                       Icon(Icons.notifications_active,color: AppColors.whiteColor,),
+                                                     ],
+                                                   ),
+                                                 ),
+                                               ),
+                                             )
+                                           ],
+                                         ),
+                                       ),
+                                     ),
+                                     Positioned(
+                                       right: 0,
+                                       top: 0,
+                                       child: Container(
+                                         height: 70,
+                                         width: 100,
+                                         decoration: const BoxDecoration(
+                                             color:AppColors.primaryColor2,
+                                             borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
+                                         ),
+                                         child: Padding(
+                                           padding: const EdgeInsets.all(15.0),
+                                           child: Image.asset('assets/icons/cake.png'),
+                                         ),
+                                       ),
+                                     )
+                                   ],
+                                 );
+                           }
+                           // return Text('${snapshot.data['todays'][0]}');
+                           // if(snapshot.data['todays'][0]['todayBirthday'].length ==0 || snapshot.data['upcoming'][0]['UpcomingEvents'].length == 0){
+                           //   return Text('No Events Today');
+                           // }else{
+                           //   var eventdata = snapshot.data['todays'][0];
+                           //   // return Stack(
+                           //   //   children: [
+                           //   //     // Text('${eventdata}'),
+                           //   //     // Container(
+                           //   //     //   decoration: BoxDecoration(
+                           //   //     //       color: AppColors.primaryColor,
+                           //   //     //       borderRadius: BorderRadius.circular(6)
+                           //   //     //   ),
+                           //   //     //   child: Padding(
+                           //   //     //     padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
+                           //   //     //     child: Column(
+                           //   //     //       crossAxisAlignment: CrossAxisAlignment.start,
+                           //   //     //       children: [
+                           //   //     //         const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                           //   //     //         Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                           //   //     //         const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                           //   //     //         const SizedBox(height: 30,),
+                           //   //     //         Row(
+                           //   //     //           children: [
+                           //   //     //             CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
+                           //   //     //             SizedBox(width: 10,),
+                           //   //     //             Column(
+                           //   //     //               crossAxisAlignment: CrossAxisAlignment.start,
+                           //   //     //               children: [
+                           //   //     //                 Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                           //   //     //                 Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
+                           //   //     //               ],
+                           //   //     //             )
+                           //   //     //           ],
+                           //   //     //         ),
+                           //   //     //         const SizedBox(height: 10,),
+                           //   //     //         SizedBox(
+                           //   //     //           width: 130,
+                           //   //     //           child: Container(
+                           //   //     //             decoration: BoxDecoration(
+                           //   //     //                 color: AppColors.primaryColor2,
+                           //   //     //                 borderRadius: BorderRadius.circular(6)
+                           //   //     //             ),
+                           //   //     //             child: const Padding(
+                           //   //     //               padding: EdgeInsets.all(8.0),
+                           //   //     //               child: Row(
+                           //   //     //                 mainAxisAlignment: MainAxisAlignment.center,
+                           //   //     //                 children: [
+                           //   //     //                   Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                           //   //     //                   SizedBox(width: 10,),
+                           //   //     //                   Icon(Icons.notifications_active,color: AppColors.whiteColor,),
+                           //   //     //                 ],
+                           //   //     //               ),
+                           //   //     //             ),
+                           //   //     //           ),
+                           //   //     //         )
+                           //   //     //       ],
+                           //   //     //     ),
+                           //   //     //   ),
+                           //   //     // ),
+                           //   //     // Positioned(
+                           //   //     //   right: 0,
+                           //   //     //   top: 0,
+                           //   //     //   child: Container(
+                           //   //     //     height: 70,
+                           //   //     //     width: 100,
+                           //   //     //     decoration: const BoxDecoration(
+                           //   //     //         color:AppColors.primaryColor2,
+                           //   //     //         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
+                           //   //     //     ),
+                           //   //     //     child: Padding(
+                           //   //     //       padding: const EdgeInsets.all(15.0),
+                           //   //     //       child: Image.asset('assets/icons/cake.png'),
+                           //   //     //     ),
+                           //   //     //   ),
+                           //   //     // )
+                           //   //   ],
+                           //   // );
+                           //   return Text('data');
+                           // }
+                         }
+                         return Center(child: Text('Some error occured , Please restart your application !'),);
+                       }
+                     ),
+                    const SizedBox(height: 20,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Upcoming Events',style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),),
+                        InkWell(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => UpcomingEvents(eventType: 'Upcoming Events'),));
+                          },
+                          child: const Text('See all',style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              decoration: TextDecoration.underline),),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10,),
+                    FutureBuilder(
+                      future: getEvents(),
+                      builder: (context,snapshot) {
+                        if(snapshot.connectionState == ConnectionState.waiting){
+                          return Center(child: CircularProgressIndicator(),);
+                        }else if(snapshot.hasError){
+                          return Center(child: Text('Some error occured!'),);
+                        }else if(snapshot.hasData){
+                          var eventdata = snapshot.data['upcoming'][0];
+                          if(eventdata.isNotEmpty){
+                            return Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                      color: AppColors.primaryColor,
+                                      borderRadius: BorderRadius.circular(6)
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 25.0,top: 10,bottom: 10,right: 10),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('Hey !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                        Text('Its ${eventdata['doc_name']} Birthday !',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12),),
+                                        const Text('Wish an all the Best',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                        const SizedBox(height: 30,),
+                                        Row(
+                                          children: [
+                                            CircleAvatar(radius: 25,child: Text('${eventdata['doc_name'][0].toString().toUpperCase()}'),),
+                                            SizedBox(width: 10,),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('${eventdata['doc_name']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                                Text('${eventdata['doc_qualification']}',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 9)),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10,),
+                                        SizedBox(
+                                          width: 130,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: AppColors.primaryColor2,
+                                                borderRadius: BorderRadius.circular(6)
+                                            ),
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text('Notify me',style: TextStyle(fontWeight: FontWeight.w500,color: AppColors.whiteColor,fontSize: 12)),
+                                                  SizedBox(width: 10,),
+                                                  Icon(Icons.notifications_active,color: AppColors.whiteColor,),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Container(
+                                    height: 70,
+                                    width: 100,
+                                    decoration: const BoxDecoration(
+                                        color:AppColors.primaryColor2,
+                                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(21),topRight: Radius.circular(6))
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(15.0),
+                                      child: Image.asset('assets/icons/cake.png'),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            );
+                          }
+                          return Text('No upcoming events');
+                        }
+                        return Text('Some error occured ,Please restart your application');
+                      }
+                    ),
+                    const SizedBox(height: 70,)
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class ProfileIconWidget extends StatelessWidget {
+  String userName;
+  ProfileIconWidget({
+    required this.userName,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(child: Text('${userName}',style: text60014black,),);
   }
 }
 

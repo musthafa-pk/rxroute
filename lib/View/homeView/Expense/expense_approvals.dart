@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
 import 'package:rxroute_test/View/homeView/Expense/widgets.dart';
 
 import '../../../app_colors.dart';
+import '../home_view_rep.dart';
 
 class ExpenseApprovals extends StatefulWidget {
   const ExpenseApprovals({super.key});
@@ -57,6 +59,12 @@ class _ExpenseApprovalsState extends State<ExpenseApprovals> with SingleTickerPr
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         title: const Text('My Expenses', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         bottom: TabBar(
@@ -65,6 +73,13 @@ class _ExpenseApprovalsState extends State<ExpenseApprovals> with SingleTickerPr
           labelColor: Colors.black,
           indicatorColor: Colors.green,
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: (){
+          Navigator.pushNamed(context, RoutesName.requestExpense);
+        },
+        child: Icon(Icons.add,color: AppColors.whiteColor,),
       ),
       body: SafeArea(
         child: Column(

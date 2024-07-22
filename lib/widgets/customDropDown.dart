@@ -4,17 +4,20 @@ class CustomDropdown extends StatelessWidget {
   final List<String> options;
   final ValueChanged<String?>? onChanged;
   final String? value;
+  final String? hintText;
 
   const CustomDropdown({super.key, 
     required this.options,
     this.onChanged,
     this.value,
+    this.hintText,
   });
 
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
       value: value,
+      hint: Text('${hintText ?? 'select'}'),
       items: options.map((String option) {
         return DropdownMenuItem<String>(
           value: option,

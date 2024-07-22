@@ -11,6 +11,7 @@ import '../../../Util/Utils.dart';
 import '../../../app_colors.dart';
 import '../../../defaultButton.dart';
 import '../../../res/app_url.dart';
+import '../home_view_rep.dart';
 
 class AddRep extends StatefulWidget {
   const AddRep({super.key});
@@ -188,6 +189,12 @@ class _AddRepState extends State<AddRep> {
             ),
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         centerTitle: true,
         title: const Text(
           'Add Employee',
@@ -440,7 +447,7 @@ class _AddRepState extends State<AddRep> {
                                 readOnly: true,
                                 onTap: () async {
                                   DateTime currentDate = DateTime.now();
-                                  DateTime firstDate = DateTime(currentDate.year, currentDate.month - 1, 1);
+                                  DateTime firstDate = DateTime(1500);
                                   DateTime initialDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day - 1);
                                   DateTime lastDate = DateTime(currentDate.year, currentDate.month + 2, 0); // Last day of the next month
 
@@ -555,6 +562,16 @@ class _AddRepState extends State<AddRep> {
                             contentPadding: EdgeInsets.only(left: 10),
                             counterText: ''
                         ),
+                        validator: (value) {
+                          if(value! == null && value.isEmpty){
+                            return 'Please fill this field';
+                          }
+                          if(value.length <6){
+                            return 'Password must contain 6 charecters';
+                          }
+                          return null;
+
+                        },
                       ),
                     )
                   ],

@@ -198,7 +198,7 @@ class _ExpenseListState extends State<ExpenseList> {
                                 color: AppColors.borderColor,
                                 fontSize: 12),),
                             SizedBox(height: 10,),
-                            Row(
+                            snapdata[index]['status'] == 'Pending'? Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 InkWell(
@@ -239,7 +239,7 @@ class _ExpenseListState extends State<ExpenseList> {
                                         child: Center(child: Text('Reject')),
                                       )),
                                 ),
-                              ],)
+                              ],):Text(''),
                           ],
                         ),
                       ),

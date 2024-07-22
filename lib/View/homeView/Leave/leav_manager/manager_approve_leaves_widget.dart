@@ -142,301 +142,282 @@ class _LeaveListState extends State<LeaveList> {
           } else if (snapshot.hasData) {
             return Padding(
               padding: const EdgeInsets.all(25.0),
-              child: Expanded(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    width: 0.5, color: AppColors.borderColor),
-                                borderRadius: BorderRadius.circular(6)),
-                            child: TextFormField(
-                              decoration: const InputDecoration(
-                                hintText: 'Search',
-                                prefixIcon: Icon(Icons.search),
-                                border: InputBorder.none,
-                              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(width: 0.5, color: AppColors.borderColor),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                              hintText: 'Search',
+                              prefixIcon: Icon(Icons.search),
+                              border: InputBorder.none,
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 10,
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(6)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: SizedBox(
-                                height: 25,
-                                width: 25,
-                                child: Image.asset('assets/icons/settings.png')),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Image.asset('assets/icons/settings.png'),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            var snapdata = snapshot.data!;
-                            int dayDiffrence = Utils.calculateDaysDifference(
-                                snapdata[index]['from_date'],
-                                snapdata[index]['to_date']);
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: AppColors.textfiedlColor,
-                                        borderRadius: BorderRadius.circular(6)),
-                                    child: Column(
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    flex: 3,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        var snapdata = snapshot.data!;
+                        int dayDiffrence = Utils.calculateDaysDifference(
+                          snapdata[index]['from_date'],
+                          snapdata[index]['to_date'],
+                        );
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                          child: Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.textfiedlColor,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 50),
+                                    Column(
                                       children: [
-                                        const SizedBox(
-                                          height: 50,
-                                        ),
-                                        Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  top: 30.0,
-                                                  left: 10.0,
-                                                  right: 10.0,
-                                                  bottom: 20.0),
-                                              child: Row(
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 30.0,
+                                            left: 10.0,
+                                            right: 10.0,
+                                            bottom: 20.0,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Column(
                                                 children: [
-                                                  Column(
-                                                    children: [
-                                                      Text(
-                                                          '${snapdata[index]['from_date'].toString().substring(0, 2)}' +
-                                                              'th'),
-                                                      Text(
-                                                          '${Utils.formatMonth(snapdata[index]['from_date'].toString())}'),
-                                                      Text(
-                                                          '(${Utils.formatDay(snapdata[index]['from_date']).toString().substring(0, 3)})'),
-                                                    ],
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 20,
-                                                  ),
-                                                  Container(
-                                                    height: 20,
-                                                    width: 20,
-                                                    decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                50),
-                                                        border: Border.all(
-                                                            width: 1,
-                                                            color: AppColors
-                                                                .blackColor)),
-                                                  ),
-                                                  const Expanded(
-                                                      child: Divider(
-                                                    indent: 10,
-                                                    color: AppColors.primaryColor,
-                                                  )),
-                                                  Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 10.0, right: 10.0),
-                                                    child: Column(
-                                                      children: [
-                                                        Text(
-                                                          '${dayDiffrence} day',
-                                                          style: text50014black,
-                                                        ),
-                                                        // Text('10 Days available',style:text50010,),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const Expanded(
-                                                      child: Divider(
-                                                    endIndent: 10,
-                                                    color: AppColors.primaryColor,
-                                                  )),
-                                                  Container(
-                                                    height: 20,
-                                                    width: 20,
-                                                    decoration: BoxDecoration(
-                                                        color: AppColors.blackColor,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                50),
-                                                        border: Border.all(
-                                                            width: 5,
-                                                            color: Colors.grey)),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 20,
-                                                  ),
-                                                  Column(
-                                                    children: [
-                                                      Text(
-                                                          '${snapdata[index]['to_date'].toString().substring(0, 2)}' +
-                                                              'th'),
-                                                      Text(
-                                                          '${Utils.formatMonth(snapdata[index]['to_date'].toString())}'),
-                                                      Text(
-                                                          '(${Utils.formatDay(snapdata[index]['to_date']).toString().substring(0, 3)})'),
-                                                    ],
+                                                  Text(
+                                                    '${snapdata[index]['from_date'].toString()}',
+                                                    style: text50014black,
                                                   ),
                                                 ],
                                               ),
-                                            )
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(left: 20.0),
-                                          child: Text(
-                                            '${snapdata[index]['type']}',
-                                            style: text50010black,
+                                              const SizedBox(width: 20),
+                                              Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(50),
+                                                  border: Border.all(
+                                                    width: 1,
+                                                    color: AppColors.blackColor,
+                                                  ),
+                                                ),
+                                              ),
+                                              const Expanded(
+                                                child: Divider(
+                                                  indent: 10,
+                                                  color: AppColors.primaryColor,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                                                child: Column(
+                                                  children: [
+                                                    Text(
+                                                      '${dayDiffrence} day',
+                                                      style: text50014black,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Expanded(
+                                                child: Divider(
+                                                  endIndent: 10,
+                                                  color: AppColors.primaryColor,
+                                                ),
+                                              ),
+                                              Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.blackColor,
+                                                  borderRadius: BorderRadius.circular(50),
+                                                  border: Border.all(
+                                                    width: 5,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 20),
+                                              Column(
+                                                children: [
+                                                  Text(
+                                                    '${snapdata[index]['to_date'].toString()}',
+                                                    style: text50014black,
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 10.0,
-                                              right: 10,
-                                              top: 10,
-                                              bottom: 10),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Padding(
+                                      padding: EdgeInsets.only(left: 20.0),
+                                      child: Text(
+                                        '${snapdata[index]['type']}',
+                                        style: text50010black,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 10.0,
+                                        right: 10,
+                                        top: 10,
+                                        bottom: 10,
+                                      ),
+                                      child: Container(
+                                        width: MediaQuery.of(context).size.width,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.whiteColor,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(10.0),
+                                          child: Text('${snapdata[index]['remark']}'),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    snapdata[index]['status'] == 'Pending'
+                                        ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            ManagerApproveLeavesWidget.acceptRejectLeavMngr(
+                                              context,
+                                              int.parse(snapdata[index]['repDetails'][0]['id'].toString()),
+                                              'Accepted',
+                                              int.parse(snapdata[index]['id'].toString()),
+                                            ).then((_) {
+                                              setState(() {
+                                                _loadLeaves(); // Reload expenses to refresh the list
+                                              });
+                                            });
+                                          },
                                           child: Container(
-                                            width:
-                                                MediaQuery.of(context).size.width,
-                                            height: 100,
+                                            width: MediaQuery.of(context).size.width / 3,
                                             decoration: BoxDecoration(
-                                                color: AppColors.whiteColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(6)),
+                                              color: AppColors.whiteColor,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
                                             child: Padding(
-                                              padding: EdgeInsets.all(10.0),
-                                              child: Text(
-                                                  '${snapdata[index]['remark']}'),
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Center(child: Text('Accept', style: text50014black)),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        snapdata[index]['status'] == 'Pending' ? Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          children: [
-                                            InkWell(
-                                              onTap: (){
-                                                ManagerApproveLeavesWidget.acceptRejectLeavMngr(
-                                                    context,
-                                                  int.parse(snapdata[index]['repDetails'][0]['id'].toString()),
-                                                  'Accepted',
-                                                  int.parse(snapdata[index]['id'].toString()),
-                                                ).then((_) {
-                                                  setState(() {
-                                                    _loadLeaves(); // Reload expenses to refresh the list
-                                                  });
-                                                });
-                                              },
-                                              child: Container(
-                                                width: MediaQuery.of(context).size.width/3,
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.whiteColor,
-                                                  borderRadius: BorderRadius.circular(6)
-                                                ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: Center(child: Text('Accept',style: text50014black,)),
-                                                ),
-                                              ),
+                                        InkWell(
+                                          onTap: () {
+                                            ManagerApproveLeavesWidget.acceptRejectLeavMngr(
+                                              context,
+                                              int.parse(snapdata[index]['repDetails'][0]['id'].toString()),
+                                              'Rejected',
+                                              int.parse(snapdata[index]['id'].toString()),
+                                            ).then((_) {
+                                              setState(() {
+                                                _loadLeaves(); // Reload expenses to refresh the list
+                                              });
+                                            });
+                                          },
+                                          child: Container(
+                                            width: MediaQuery.of(context).size.width / 3,
+                                            decoration: BoxDecoration(
+                                              color: AppColors.whiteColor,
+                                              borderRadius: BorderRadius.circular(6),
                                             ),
-                                            InkWell(
-                                              onTap: (){
-                                                ManagerApproveLeavesWidget.acceptRejectLeavMngr(
-                                                  context,
-                                                  int.parse(snapdata[index]['repDetails'][0]['id'].toString()),
-                                                  'Rejected',
-                                                  int.parse(snapdata[index]['id'].toString()),
-                                                ).then((_) {
-                                                  setState(() {
-                                                    _loadLeaves(); // Reload expenses to refresh the list
-                                                  });
-                                                });
-                                              },
-                                              child: Container(
-                                                width: MediaQuery.of(context).size.width/3,
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.whiteColor,
-                                                  borderRadius: BorderRadius.circular(6)
-                                                ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: Center(child: Text('Reject',style: text50014black,)),
-                                                ),
-                                              ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Center(child: Text('Reject', style: text50014black)),
                                             ),
-                                          ],
-                                        ) : Text(''),
-                                        SizedBox(height: 10,),
-                                      ],
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 20,
-                                    left: 20,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${snapdata[index]['repDetails'][0]['name'].toString().toUpperCase()}',
-                                          style: text50014black,
-                                        ),
-                                        Text(
-                                          '${snapdata[index]['repDetails'][0]['designation'].toString().toUpperCase()}',
-                                          style: text50010tcolor2,
+                                          ),
                                         ),
                                       ],
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 20,
-                                    right: 20,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          Utils.formatDate(
-                                              '${snapdata[index]['created_date'].toString()}'),
-                                          style: text50014black,
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Text(
-                                          '${snapdata[index]['status'].toString().toUpperCase()}',
-                                          style: text40016,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                    )
+                                        : Text(''),
+                                    SizedBox(height: 10),
+                                  ],
+                                ),
                               ),
-                            );
-                          }),
-                    )
-                  ],
-                ),
+                              Positioned(
+                                top: 20,
+                                left: 20,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${snapdata[index]['repDetails'][0]['name'].toString().toUpperCase()}',
+                                      style: text50014black,
+                                    ),
+                                    Text(
+                                      '${snapdata[index]['repDetails'][0]['designation'].toString().toUpperCase()}',
+                                      style: text50010tcolor2,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                top: 20,
+                                right: 20,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      Utils.formatDate('${snapdata[index]['created_date'].toString()}'),
+                                      style: text50014black,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      '${snapdata[index]['status'].toString().toUpperCase()}',
+                                      style: text40016,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             );
+
           } else
             return Center(
               child: Text(

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
+import 'package:rxroute_test/constants/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../app_colors.dart';
@@ -272,10 +273,19 @@ class ExpenseApprovalsWidgetsManager{
                                         ),
                                         Padding(
                                           padding: EdgeInsets.only(left: 20.0),
-                                          child: Text('${managerData[0]['name']}',style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              color: AppColors.borderColor,
-                                              fontSize: 12)),
+                                          child: Row(
+                                            children: [
+                                              Text('${managerData[0]['name']}',style: TextStyle(
+                                                  fontWeight: FontWeight.w400,
+                                                  color: AppColors.borderColor,
+                                                  fontSize: 12)),
+                                              Padding(
+                                                padding: const EdgeInsets.only(left: 10.0,right: 10.0),
+                                                child: Icon(Icons.compare_arrows,size: 15,),
+                                              ),
+                                              Text('${snapdata[index]['doctorDetails'][0]['doc_name']}',style: text40012bordercolor,),
+                                            ],
+                                          ),
                                         ),
                                         Padding(
                                           padding: EdgeInsets.only(left: 20.0),

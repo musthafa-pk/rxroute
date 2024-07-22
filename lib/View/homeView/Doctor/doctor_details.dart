@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxroute_test/View/MarkasVisited/markasVisited.dart';
+import 'package:rxroute_test/View/homeView/Doctor/edit_doctor.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxroute_test/constants/styles.dart';
@@ -10,6 +11,7 @@ import '../../../Util/Routes/routes_name.dart';
 import '../../../Util/Utils.dart';
 import '../../../res/app_url.dart';
 import '../Employee/widgets.dart';
+import '../home_view_rep.dart';
 
 class DoctorDetails extends StatefulWidget {
   int doctorID;
@@ -51,6 +53,7 @@ class _DoctorDetailsState extends State<DoctorDetails> with SingleTickerProvider
 
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
+
         doctorDetails.clear();
         doctorDetails.addAll(responseData['data']);
         return doctorDetails;
@@ -106,9 +109,28 @@ class _DoctorDetailsState extends State<DoctorDetails> with SingleTickerProvider
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       appBar: AppBar(
-        backgroundColor: AppColors.whiteColor,
-        title: const Text('Details', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        title: const Text('Details', style: TextStyle(),),
         centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor, // Replace with your desired color
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: InkWell(onTap: () {
+              Navigator.pop(context);
+            },
+                child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: single_doctordetails(),
@@ -162,10 +184,15 @@ class _DoctorDetailsState extends State<DoctorDetails> with SingleTickerProvider
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: Image.asset('assets/icons/edit.png'),
+                    InkWell(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => EditDoctor(doctorID: snapdata['id'].toString(),),));
+                      },
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: Image.asset('assets/icons/edit.png'),
+                      ),
                     )
                   ],
                 ),

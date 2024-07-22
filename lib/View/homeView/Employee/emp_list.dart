@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/View/homeView/Employee/add_rep.dart';
+import 'package:rxroute_test/View/homeView/Employee/edit_emp.dart';
 import 'package:rxroute_test/app_colors.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Util/Routes/routes_name.dart';
 import '../../../Util/Utils.dart';
 import '../../../res/app_url.dart';
+import '../home_view_rep.dart';
 import 'emp_details.dart';
 
 class EmpList extends StatefulWidget {
@@ -16,11 +19,14 @@ class EmpList extends StatefulWidget {
   State<EmpList> createState() => _EmpListState();
 }
 
-
 class _EmpListState extends State<EmpList> {
   List<dynamic> employeesList = [];
 
-  Future<dynamic> getemployees() async {
+  final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = true; // To handle loading state
+  bool _isSearching = false; // To handle searching state
+
+  Future<void> getemployees() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? userID = preferences.getString('userID');
     String url = AppUrl.get_employee;
@@ -42,9 +48,10 @@ class _EmpListState extends State<EmpList> {
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
         print('employee list : $responseData');
-        employeesList.clear();
-        employeesList.addAll(responseData['data']);
-        return employeesList;
+        setState(() {
+          employeesList = responseData['data'];
+          _isLoading = false;
+        });
       } else {
         var responseData = jsonDecode(response.body);
         Utils.flushBarErrorMessage('${responseData['message']}', context);
@@ -55,7 +62,7 @@ class _EmpListState extends State<EmpList> {
     }
   }
 
-  Future<dynamic> deleteemployee(String empID) async {
+  Future<void> deleteemployee(String empID) async {
     String url = AppUrl.delete_employee;
     Map<String, dynamic> data = {
       "rep_id": int.parse(empID.toString())
@@ -85,27 +92,103 @@ class _EmpListState extends State<EmpList> {
     }
   }
 
+  Future<void> searchemployee() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? userID = preferences.getString('userID');
+    String url = AppUrl.search_employee;
+    Map<String, dynamic> data = {
+      "searchName": _searchController.text,
+      "created_by": int.parse(userID.toString())
+    };
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        print('search response:${jsonDecode(response.body)}');
+        var responseData = jsonDecode(response.body);
+        print('filtered list : $responseData');
+        setState(() {
+          employeesList = responseData['data'];
+          _isSearching = true;
+          print('filtered data :$employeesList');
+        });
+        if (responseData['data'].isEmpty) {
+          getemployees();
+        }
+      } else {
+        var responseData = jsonDecode(response.body);
+        Utils.flushBarErrorMessage('${responseData['message']}', context);
+        throw Exception('Failed to load data (status code: ${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Failed to load data: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+    getemployees(); // Fetch the initial list of employees
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  _onSearchChanged() {
+    if (_searchController.text.isEmpty) {
+      getemployees();
+    } else {
+      searchemployee();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.whiteColor,
       appBar: AppBar(
-        backgroundColor:Colors.white,
-        title: const Text('Employee list',style: TextStyle(),),
+        backgroundColor: AppColors.whiteColor,
+        title: const Text('Employee list', style: TextStyle(),),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color:AppColors.primaryColor, // Replace with your desired color
+              color: AppColors.primaryColor, // Replace with your desired color
               borderRadius: BorderRadius.circular(6),
             ),
-            child: InkWell(onTap: (){
-              Navigator.pop(context);
-            },
-                child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
+            child: InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: const Icon(Icons.arrow_back, color: Colors.white),
+            ), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => AddRep(),));
+        },
+        child: Icon(Icons.add, color: AppColors.whiteColor,),
       ),
       body: SafeArea(
         child: Padding(
@@ -117,10 +200,11 @@ class _EmpListState extends State<EmpList> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                          border: Border.all(width: 0.5,color: AppColors.borderColor),
+                          border: Border.all(width: 0.5, color: AppColors.borderColor),
                           borderRadius: BorderRadius.circular(6)
                       ),
                       child: TextFormField(
+                        controller: _searchController,
                         decoration: const InputDecoration(
                           hintText: 'Search',
                           prefixIcon: Icon(Icons.search),
@@ -138,65 +222,79 @@ class _EmpListState extends State<EmpList> {
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: SizedBox(
-                          height: 25,width: 25,
-                          child: Image.asset('assets/icons/settings.png')),
+                          height: 25, width: 25,
+                          child: Image.asset('assets/icons/settings.png')
+                      ),
                     ),
                   )
                 ],
               ),
-              Expanded(
-                child: FutureBuilder(
-                  future: getemployees(),
-                  builder: (context,snapshot) {
-                    if(snapshot.connectionState == ConnectionState.waiting){
-                      return Center(child: CircularProgressIndicator(),);
-                    }else if(snapshot.hasError){
-                      return Center(child: Text('Some error occured !'),);
-                    }else if(snapshot.hasData){
-                      var snapdata = snapshot.data!;
-                      return ListView.builder(
-                          itemCount: snapdata.length,
-                          shrinkWrap: true,
-                          itemBuilder: (context,index) {
-                            return InkWell(
-                              onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context) =>  EmpDetails(empID: snapdata['id'],),));
-                              },
-                              child: ListTile(
-                                leading:  CircleAvatar(
-                                  child: Text('${snapdata[index]['name'][0]}'),
-                                ),
-                                title: Text('${snapdata[index]['name']}'),
-                                subtitle: Text('${snapdata[index]['email']}'),
-                                trailing: PopupMenuButton<String>(
-                                  color: AppColors.whiteColor,
-                                  onSelected: (String result){
-                                    if(result == 'edit'){
-                                      print('Edit action');
-                                    }else if(result == 'delete'){
-                                      _showDeleteConfirmationDialog(context, '${snapdata[index]['name']}','${snapdata[index]['id']}');
-                                    }
-                                  }, itemBuilder: (BuildContext context)=><PopupMenuEntry<String>>[
-                                  const PopupMenuItem<String>(
-                                    value:  'edit',
-                                    child: Text('Edit'),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value:  'delete',
-                                    child: Text('Delete'),
-                                  ),
-                                ],
-                                  icon: const Icon(Icons.more_vert),
+              _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : Expanded(
+                child: ListView.builder(
+                  itemCount: employeesList.length + 1, // Add 1 for the blank space
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    if (index < employeesList.length) {
+                      var employee = employeesList[index];
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: InkWell(
+                          onTap: () {
+                            print("empid:${employee['id']}");
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EmpDetails(
+                                  empID: employee['id'],
+                                  uniqueID: employee['unique_id'],
+                                  phone: employee['mobile'],
                                 ),
                               ),
                             );
-                          }
+                          },
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text('${employee['name'][0]}'),
+                            ),
+                            title: Text('${employee['name']}'),
+                            subtitle: Text('${employee['email']}'),
+                            trailing: PopupMenuButton<String>(
+                              color: AppColors.whiteColor,
+                              onSelected: (String result) {
+                                if (result == 'edit') {
+                                  print('Edit action');
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => EditRep(uniqueID: employee['unique_id'], userID: employee['id'],),));
+                                } else if (result == 'delete') {
+                                  _showDeleteConfirmationDialog(context, '${employee['name']}', '${employee['id']}');
+                                }
+                              },
+                              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'edit',
+                                  child: Text('Edit'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Text('Delete'),
+                                ),
+                              ],
+                              icon: const Icon(Icons.more_vert),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else {
+                      // Return a blank container as the last item
+                      return Container(
+                        height: 100, // Adjust height as needed
+                        color: Colors.white,
                       );
                     }
-                    return Text("Some error occured, Please restart your application ! ");
-                  }
+                  },
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -204,12 +302,12 @@ class _EmpListState extends State<EmpList> {
     );
   }
 
-  Future<void >_showDeleteConfirmationDialog(BuildContext context, String employeeName,String empID)async {
+  Future<void> _showDeleteConfirmationDialog(BuildContext context, String employeeName, String empID) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Delete Doctor"),
+          title: const Text("Delete Employee"),
           content: Text("Do you want to delete $employeeName from the list?"),
           actions: [
             TextButton(
@@ -220,7 +318,7 @@ class _EmpListState extends State<EmpList> {
             ),
             TextButton(
               child: const Text("Yes"),
-              onPressed: ()async {
+              onPressed: () async {
                 await deleteemployee(empID);
               },
             ),

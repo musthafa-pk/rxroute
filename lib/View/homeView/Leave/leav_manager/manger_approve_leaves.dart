@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import '../../../../Util/Utils.dart';
 import '../../../../app_colors.dart';
 import '../../../../res/app_url.dart';
+import '../../home_view_rep.dart';
 
 class ManagerApproveLeaves extends StatefulWidget {
   const ManagerApproveLeaves({super.key});
@@ -64,6 +65,12 @@ class _ManagerApproveLeavesState extends State<ManagerApproveLeaves> with Ticker
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         title: const Text('Approve Leaves', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         bottom: TabBar(

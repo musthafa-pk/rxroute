@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:rxroute_test/Util/Routes/routes_name.dart';
 import 'package:rxroute_test/Util/Utils.dart';
 import 'package:rxroute_test/View/homeView/Leave/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../app_colors.dart';
+import '../home_view_rep.dart';
 
 class LeaveApprovals extends StatefulWidget {
   const LeaveApprovals({super.key});
@@ -66,12 +68,25 @@ class _LeaveApprovalsState extends State<LeaveApprovals> with SingleTickerProvid
                 child: const Icon(Icons.arrow_back, color: Colors.white)), // Adjust icon color
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: ProfileIconWidget(userName: Utils.userName![0].toString().toUpperCase() ?? 'N?A',),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: _tabs,
           labelColor: Colors.black,
           indicatorColor: Colors.green,
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor ,
+        onPressed: (){
+          Navigator.pushNamed(context, RoutesName.requestLeave);
+        },
+        child: Icon(Icons.add,color: AppColors.whiteColor,),
       ),
       body: SafeArea(
         child: Column(
